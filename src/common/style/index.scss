@@ -1,0 +1,8 @@
+$baseFont: 37.5px;
+@function px2rem ($px) {
+  @return ($px/$baseFont) +rem;
+}
+
+body, div, span, header, footer, nav, section, aside, article, ul, dl, dt, dd, li, a, p, h1, h2, h3, h4,h5, h6, i, b, textarea, button, input, select, figure, figcaption, {
+  box-sizing: border-box;
+}
