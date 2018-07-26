@@ -1,36 +1,19 @@
 <template>
   <div class="sidebar" :class="collapse? 'openSidebar' : 'closeSidebar'">
-    <div class="mask" @click="colseSideBar" v-show="collapse"></div>
-    <el-menu class="sidebar-el-menu" :default-active="onRoutes" background-color="#324157" text-color="#bfcbd9" active-text-color="#20a0ff" unique-opened router>
-      <template v-for="item in items">
-        <template v-if="item.subs">
-          <el-submenu :index="item.index" :key="item.index">
-            <template slot="title">
-              <i :class="item.icon"></i>
-              <span slot="title">{{ item.title }}</span>
-            </template>
-            <el-menu-item v-for="(subItem,i) in item.subs" :key="i" :index="subItem.index">
-              <template>
-                <i :class="subItem.icon"></i>
-                <span slot="title">{{ subItem.title }}</span>
-              </template>
-            </el-menu-item>
-          </el-submenu>
-        </template>
-        <template v-else>
-          <el-menu-item :index="item.index" :key="item.index">
-            <i :class="item.icon"></i>
-            <span slot="title">{{ item.title }}</span>
-          </el-menu-item>
-        </template>
-      </template>
-    </el-menu>
+    <div @click="colseSideBar" class="mask"></div>
+    <ul>
+      <li v-for="item in items" :key="item.index" @click="colseSideBar">
+        <router-link :to="'/'+item.index">
+          <i :class="item.icon"></i>{{item.title}}</router-link>
+      </li>
+    </ul>
   </div>
 </template>
 
 <script>
 import menuList from "../../config/sideBarData";
 import bus from "../../utils/bus";
+// import { onErrors } from "../../utils/callback";
 
 export default {
   data() {
@@ -45,7 +28,7 @@ export default {
       const loginData = JSON.parse(localStorage.getItem("loginData"));
       if (loginData.userRole === "plat_super_admin") {
         this.items.push({
-          icon: "el-icon-setting",
+          icon: "iconfont icon-device",
           index: "device",
           title: "设备管理"
         });
@@ -53,7 +36,7 @@ export default {
     },
     colseSideBar() {
       this.collapse = !this.collapse;
-      bus.$emit('collapsed', this.collapse);
+      bus.$emit("collapsed", this.collapse);
     }
   },
   mounted() {
@@ -81,34 +64,57 @@ export default {
 .sidebar {
   display: block;
   position: absolute;
-  width: px2rem(200px);
-  top: px2rem(60px);
-  bottom: 0;
-  overflow-y: scroll;
-  transition: all 0.35s ease-in;
-  z-index: 666;
-}
-.mask {
-  position: absolute;
-  top: px2rem(60px);
-  right: 0;
-  bottom: 0;
+  top: $baseHeader;
   left: 0;
-  z-index: 555;
-}
-.openSidebar {
-  left: 0;
-}
-.closeSidebar {
-  left: px2rem(-200px);
-}
-.sidebar::-webkit-scrollbar {
-  width: 0;
-}
-.sidebar-el-menu:not(.el-menu--collapse) {
-  width: px2rem(200px);
-}
-.sidebar > ul {
-  height: 100%;
+  bottom: 0;
+  transition: all 0.2s ease-in;
+  .mask {
+    position: fixed;
+    top: $baseHeader;
+    bottom: 0;
+    background: rgba($color: #000000, $alpha: 0.3);
+    z-index: 555;
+  }
+  &.openSidebar {
+    left: 0;
+    right: 0;
+    .mask {
+      left: 0;
+      right: 0;
+    }
+  }
+  &.closeSidebar {
+    left: px2rem(-160px);
+    right: none;
+    .mask {
+      left: px2rem(-160px);
+      right: none;
+    }
+  }
+  ul {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    width: px2rem(160px);
+    background: #394750;
+    z-index: 556;
+    li {
+      font-size: 0;
+      padding: 15px 20px;
+      a {
+        display: block;
+        font-size: px2rem(14px);
+        color: rgb(191, 203, 217);
+        &.router-link-active {
+          color: rgb(32, 160, 255);
+        }
+        i {
+          margin-right: 10px;
+        }
+      }
+    }
+  }
 }
 </style>

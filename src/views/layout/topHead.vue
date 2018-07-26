@@ -1,23 +1,26 @@
 <template>
   <div class="header">
-    <div class="icon" @click="triggerList">
-      <i class="iconfont icon-list"></i>
-    </div>
-    <div class="names">
-      <el-dropdown class="user-name" trigger="click" @command="handleCommand">
-        <span class="el-dropdown-link">
-          {{username}}
-          <i class="el-icon-caret-bottom"></i>
-        </span>
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item command="userMsg">
-            <i class="iconfont icon-user"></i>个人信息</el-dropdown-item>
-          <el-dropdown-item divided command="userPwd">
-            <i class="el-icon-setting"></i>修改密码</el-dropdown-item>
-          <el-dropdown-item divided command="loginout">
-            <i class="iconfont icon-logout"></i>退出登录</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
+    <mt-header fixed :title="username">
+      <mt-button @click="triggerList" slot="left">
+        <i class="iconfont icon-list1"></i>
+      </mt-button>
+      <mt-button icon="more" @click="showMore" slot="right"></mt-button>
+    </mt-header>
+    <div class="userInfo" :class="[showIt ? 'showit' :'']">
+      <ul>
+        <li>
+          <i class="iconfont icon-user"></i>
+          <router-link to="/user">个人信息</router-link>
+        </li>
+        <li>
+          <i class="iconfont icon-password"></i>
+          <router-link to="/password">修改密码</router-link>
+        </li>
+        <li @click="handleCommand">
+          <i class="iconfont icon-logout"></i>
+          <span>退出登录</span>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -27,12 +30,14 @@ import bus from "../../utils/bus";
 export default {
   data() {
     return {
+      showIt: false,
       collapse: false
     };
   },
   computed: {
     username() {
-      let userData = JSON.parse(localStorage.getItem("loginData"));
+      // let userData = JSON.parse(localStorage.getItem("loginData"));
+      let userData = JSON.parse(localStorage.getItem("loginData")) || this.$store.state.LogInDate;
       return userData ? `${userData.enterpriseName}-${userData.userName}` : "";
     }
   },
@@ -42,18 +47,12 @@ export default {
     });
   },
   methods: {
-    handleCommand(command) {
-      console.log(command);
-      if (command === "loginout") {
-        localStorage.removeItem("loginData");
-        this.$router.push("/login");
-      }
-      if (command === "userMsg") {
-        this.$router.push("/user");
-      }
-      if (command === "userPwd") {
-        this.$router.push("/password");
-      }
+    handleCommand() {
+      localStorage.removeItem("loginData");
+      this.$router.push("/login");
+    },
+    showMore() {
+      this.showIt = !this.showIt;
     },
     triggerList() {
       this.collapse = !this.collapse;
@@ -67,21 +66,40 @@ export default {
 .header {
   display: flex;
   justify-content: space-between;
-  height: px2rem(60px);
-  line-height: px2rem(60px);
+  height: $baseHeader;
+  line-height: $baseHeader;
   border-bottom: 1px solid #cccccc;
-  .icon {
-    margin-left: px2rem(10px);
-    width: px2rem(50px);
-    .iconfont {
-      font-size: px2rem(30px);
-    }
+  .iconfont {
+    font-size: px2rem(24px);
   }
-  .names {
-    text-align: right;
-    padding-right: px2rem(10px);
-    font-size: px2rem(16px);
-    width: px2rem(200px);
+  .userInfo {
+    position: absolute;
+    top: ($baseHeader + 5px);
+    right: 5px;
+    width: px2rem(80px);
+    height: 0;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 3px;
+    z-index: 222;
+    box-shadow: 0 0 15px #333333;
+    transition: height 0.3s ease-in;
+    &.showit {
+      height: px2rem(120px);
+    }
+    li {
+      font-size: px2rem(12px);
+      height: px2rem(40px);
+      line-height: px2rem(40px);
+      text-align: center;
+      border-bottom: 1px solid #e5e5e5;
+      i {
+        font-size: px2rem(14px);
+      }
+      a {
+        color: #333333;
+      }
+    }
   }
 }
 </style>

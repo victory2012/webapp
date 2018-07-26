@@ -1,24 +1,30 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue';
-import MintUI from 'mint-ui';
-import 'mint-ui/lib/style.css';
-import ElementUI from 'element-ui';
+import {
+  Button,
+  Header
+} from 'mint-ui';
+import Vuex from "vuex";
 import FastClick from 'fastclick';
-import 'element-ui/lib/theme-chalk/index.css';
+import 'mint-ui/lib/style.css';
 import App from './App';
 import router from './router';
 import './config/rem';
 import '../static/icon/iconfont.css';
+import createStore from './store/store';
 
-FastClick.attach(document.body);
 Vue.config.productionTip = false;
-Vue.use(ElementUI);
-Vue.use(MintUI);
+FastClick.attach(document.body);
+Vue.use(Vuex);
+Vue.component(Header.name, Header);
+Vue.component(Button.name, Button);
+const store = createStore();
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
   router,
+  store,
   components: {
     App,
   },

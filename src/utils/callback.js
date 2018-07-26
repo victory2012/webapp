@@ -1,10 +1,16 @@
-import {
-  Message
-} from 'element-ui';
+// import {
+//   Message
+// } from 'element-ui';
+import { Toast } from 'mint-ui';
 
 export function onTimeOut(route) {
-  Message.warning({
-    message: "登录超时，请重新登录"
+  // MessageBox.warning({
+  //   message: "登录超时，请重新登录"
+  // });
+  Toast({
+    message: '登录超时，请重新登录',
+    position: 'middle',
+    duration: 1500
   });
   route.push({
     path: "/login"
@@ -12,18 +18,32 @@ export function onTimeOut(route) {
   localStorage.removeItem('loginData');
 }
 export function onError(msg) {
-  return Message.error({
-    message: msg
+  return Toast({
+    message: msg,
+    position: 'middle',
+    duration: 2000
   });
 }
-
+export function onErrors(msg) {
+  return Toast({
+    message: msg,
+    position: 'middle',
+    duration: 10000
+  });
+}
 export function onSuccess(msg) {
-  return Message.success({
-    message: msg
+  return Toast({
+    message: msg,
+    position: 'middle',
+    duration: 2000,
+    iconClass: 'icon icon-success'
   });
 }
 export function onWarn(msg) {
-  Message.warning({
-    message: msg
+  return Toast({
+    message: msg,
+    position: 'middle',
+    duration: 2000,
+    iconClass: 'icon icon-success'
   });
 }

@@ -1,11 +1,48 @@
 <template>
   <div class="warrp">
+    <div class="Statistics">
+      <ul>
+        <li>
+          <div class="icon blue">
+            <i class="iconfont icon-suoyoushangpin2"></i>
+          </div>
+          <div>总数:
+            <span style="color:rgb(45, 140, 240)">{{allDevice}}</span>
+          </div>
+        </li>
+        <li>
+          <div class="icon green">
+            <i class="iconfont icon-onlinepay"></i>
+          </div>
+          <div>在线:
+            <span style="color:rgb(100, 213, 114)">{{onLine}}</span>
+          </div>
+        </li>
+        <li>
+          <div class="icon red">
+            <i class="iconfont icon-offline"></i>
+          </div>
+          <div>离线:
+            <span style="color:rgb(242, 94, 67)">{{offLine}}</span>
+          </div>
+        </li>
+        <li>
+          <div class="icon yellow">
+            <i class="iconfont icon-alarm"></i>
+          </div>
+          <div>无效:
+            <span style="color:#999">0</span>
+          </div>
+        </li>
+      </ul>
+    </div>
     <div id="container" class="mapWarrp"></div>
   </div>
 </template>
 <script>
 /* eslint-disable */
 import AMap from "AMap";
+import { Indicator } from "mint-ui";
 import { websockets, GetDeviceList } from "../../api/index";
 import { onTimeOut, onError, onWarn } from "../../utils/callback";
 
@@ -13,6 +50,7 @@ let map;
 let polygons = [];
 let district;
 let pointerObj = {};
+let wsTimer;
 export default {
   name: "battery",
   data() {
@@ -110,15 +148,16 @@ export default {
     /*
       http请求 获取全部电池设备
      */
-    narmleHttp(ws) {
+    narmleHttp() {
       let pageObj = {
         pageNum: 1,
         pageSize: 999999999,
-        bindingStatus: ''
+        bindingStatus: ""
       };
       GetDeviceList(pageObj)
         .then(res => {
           console.log(res);
+          Indicator.close();
           if (res.data.code === 1) {
             onTimeOut(this.$router);
           }
@@ -134,11 +173,12 @@ export default {
                 }
               });
               this.mapInit(pointerObj);
-              setTimeout(() => {
-                if (ws && ws.readyState === 1) {
-                  ws.send(JSON.stringify(this.sendData));
-                }
-              }, 1000);
+              this.sockets(JSON.stringify(this.sendData));
+              // setTimeout(() => {
+              //   if (ws && ws.readyState === 1) {
+              //     ws.send(JSON.stringify(this.sendData));
+              //   }
+              // }, 1000);
             } else {
               onWarn("暂无设备, 请先注册设备");
             }
@@ -154,11 +194,14 @@ export default {
     /*
       websockets 请求
      */
-    sockets() {
+    sockets(data) {
       websockets(ws => {
         ws.onopen = () => {
           console.log("open....");
-          this.narmleHttp(ws);
+          ws.send(data);
+          wsTimer = setInterval(() => {
+            ws.send(JSON.stringify({ api: "heart" }));
+          }, 60000);
         };
         ws.onmessage = evt => {
           let data = JSON.parse(evt.data);
@@ -183,8 +226,12 @@ export default {
           }
         };
         ws.onerror = () => {
+          wsTimer && clearInterval(wsTimer);
           onError("服务器繁忙，请稍后重试");
           this.over();
+        };
+        ws.onclose = () => {
+          console.log("closed...");
         };
         this.over = () => {
           ws.close();
@@ -209,29 +256,78 @@ export default {
           }
         });
       });
-      this.sockets();
+      Indicator.open();
+      this.narmleHttp();
     }
   },
   mounted() {
     this.init();
   },
   beforeDestroy() {
-    map.destroy();
     this.over();
+    wsTimer && clearInterval(wsTimer);
   }
 };
 </script>
 <style lang="scss" scoped>
-@import url('../../common/style/index.scss');
+@import url("../../common/style/index.scss");
 .warrp {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: $baseHeader;
+  right: 0;
+  bottom: 0;
+  left: 0;
   .mapWarrp {
+    width: 100%;
+    height: 100%;
+  }
+  .Statistics {
     position: absolute;
-    top: px2rem(60px);
-    right: 0;
-    bottom: 0;
+    top: 0;
     left: 0;
+    right: 0;
+    z-index: 20;
+    background: #FFFFFF;
+    ul {
+      display: flex;
+      padding: px2rem(10px);
+      justify-content: space-between;
+      border-bottom: 1px solid #f0f0f0;
+      li {
+        font-size: px2rem(13px);
+        line-height: px2rem(24px);
+        flex: 0 0 px2rem(82px);
+        display: flex;
+        border: 1px solid #f0f0f0;
+        border-radius: 3px;
+        div {
+          flex: 1;
+          padding-left: px2rem(2px);
+          color: #5a5a5a;
+          &.icon {
+            text-align: center;
+            flex: 0 0 px2rem(24px);
+            height: px2rem(24px);
+          }
+          &.blue {
+            background: rgb(45, 140, 240);
+            color: #ffffff;
+          }
+          &.green {
+            background: rgb(100, 213, 114);
+            color: #ffffff;
+          }
+          &.red {
+            background: rgb(242, 94, 67);
+            color: #ffffff;
+          }
+          &.yellow {
+            background: #e6a23c;
+            color: #ffffff;
+          }
+        }
+      }
+    }
   }
 }
 </style>

@@ -3,16 +3,22 @@
     <topHead></topHead>
     <div class="content-box">
       <sidebar></sidebar>
-      <div class="content">
+      <div class="app-content">
         <transition name="move" mode="out-in">
-          <keep-alive>
-            <router-view></router-view>
-          </keep-alive>
+          <!-- <keep-alive>
+            <router-view />
+          </keep-alive> -->
+          <router-view />
         </transition>
       </div>
     </div>
   </div>
 </template>
+<style>
+  .app-content {
+    overflow-x: hidden;
+  }
+</style>
 <script>
 import topHead from './topHead';
 import sidebar from './sideBar';
