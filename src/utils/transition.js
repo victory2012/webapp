@@ -94,10 +94,12 @@ export function trakTimeformat(str) {
 }
 
 export function yesTody() {
-  let str = new Date();
+  let yesDate = new Date(new Date().toLocaleDateString()).getTime();
+  let result = yesDate - 86400000;
+  let str = new Date(result);
   let yy = str.getFullYear();
   let mm = str.getMonth() + 1;
-  let day = str.getDate() - 1;
+  let day = str.getDate();
   // let hours = str.getHours();
   // let minute = str.getMinutes();
   // let second = str.getSeconds();

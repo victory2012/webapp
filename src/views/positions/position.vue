@@ -30,6 +30,7 @@
   right: 0;
   bottom: 0;
   left: 0;
+  overflow: hidden;
   .positioned {
     height: 100%;
     width: 100%;
@@ -175,7 +176,6 @@ export default {
     init() {
       map = new AMap.Map("positions", {
         resizeEnable: true,
-        center: [121.533669, 31.225885],
         zoom: 15
       });
       this.getListData();
@@ -221,11 +221,9 @@ export default {
           if (result.length > 0) {
             if (this.pathParams) {
               result.forEach((key, index) => {
-                pointerObj[key.deviceId] = `${key.longitude},${
-                  key.latitude
-                },${timeFormats(new Date())},${key.batteryId},${
+                pointerObj[key.deviceId] = `${key.longitude},${key.latitude},${trakTimeformat(key.pushTime)},${key.batteryId},${
                   key.onlineStatus
-                }`;
+                },1`;
                 if (key.onlineStatus === 1) {
                   key.onLine = "在线";
                   if (key.batteryId) {
@@ -234,13 +232,17 @@ export default {
                   if (key.deviceId) {
                     sendData.param.push(key.deviceId);
                   }
-                  // pathParams 路由传参。为设备id
-                  if (this.pathParams === key.deviceId) {
-                    // console.log("pathParams", this.pathParams);
-                    this.checkItem({ deviceId: this.pathParams }, index);
-                  }
                 } else {
                   key.onLine = "离线";
+                }
+                // pathParams 路由传参。为设备id
+                if (this.pathParams === key.deviceId) {
+                  let opts = {
+                    deviceId: this.pathParams,
+                    longitude: key.longitude,
+                    latitude: key.latitude
+                  }
+                  this.checkItem(opts, index);
                 }
                 this.pointerArr.push(key);
               });
@@ -315,7 +317,7 @@ export default {
       pointerObj = {};
       let sendData = { api: "bind", param: [] };
       data.forEach(key => {
-        pointerObj[key.deviceId] = `${key.longitude},${key.latitude},${trakTimeformat(key.pushTime)},${key.batteryId},${key.onlineStatus}`;
+        pointerObj[key.deviceId] = `${key.longitude},${key.latitude},${trakTimeformat(key.pushTime)},${key.batteryId},${key.onlineStatus},0`;
         if (key.onlineStatus === 1) {
           key.onLine = "在线";
           if (key.batteryId) {
@@ -339,8 +341,6 @@ export default {
         let lngs = allmarkerArr[i].toString().split(",");
         if (lngs[0].length > 6 && lngs[1].length > 6 && lngs[4] === "1") {
           let marker = new AMap.Marker({
-            icon: `http://webapi.amap.com/theme/v1.3/markers/n/mark_b${i +
-              1}.png`,
             position: [lngs[0], lngs[1]],
             offset: new AMap.Pixel(-12, -12),
             zIndex: 101,
@@ -350,6 +350,13 @@ export default {
             },
             map: map
           });
+          if (lngs[5] === "0") {
+            marker.setIcon('../../../static/img/gray.png');
+          } else {
+            marker.setIcon(
+              `http://webapi.amap.com/theme/v1.3/markers/n/mark_b${i + 1}.png`
+            );
+          }
           if (fromWs === "fromClick") {
             marker.setIcon(
               `http://webapi.amap.com/theme/v1.3/markers/n/mark_r${ponterIndex}.png`
@@ -411,7 +418,9 @@ export default {
           });
         });
       }
-      // map.setFitView(); // 自适应地图
+      if (!fromWs) {
+        map.setFitView(); // 自适应地图
+      }
     },
     /*
     * @params deviceId 电池列表 获取的设备id。
@@ -419,7 +428,7 @@ export default {
      */
     checkItem(item, index) {
       if (item.onlineStatus === 0) return;
-      // Indicator.open();
+      map.setCenter(new AMap.LngLat(item.longitude, item.latitude));
       this.devicelabel = item.deviceId;
       this.deviceId = item.deviceId;
       this.showTip = item.batteryId;

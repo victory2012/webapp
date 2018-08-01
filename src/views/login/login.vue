@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { Field } from "mint-ui";
+import { Field, MessageBox } from "mint-ui";
 import { getAdminInfo } from "../../api/index";
 import { onError } from "../../utils/callback";
 
@@ -72,24 +72,21 @@ export default {
       getAdminInfo(this.loginForm)
         .then(res => {
           if (res.data.code === 0) {
-            if (typeof localStorage === "object") {
+            if (typeof sessionStorage === "object") {
               try {
-                localStorage.setItem(
+                sessionStorage.setItem(
                   "loginData",
                   JSON.stringify(res.data.data)
                 );
-                localStorage.setItem("account", this.loginForm.userName);
-                localStorage.setItem("password", this.loginForm.password);
+                sessionStorage.setItem("account", this.loginForm.userName);
+                sessionStorage.setItem("password", this.loginForm.password);
+                // sessionStorage.setItem('projectTit', '设备概览');
+                this.$store.commit('LogInDate', res.data.data);
+                this.$router.push("/home");
               } catch (error) {
-                Storage.prototype._setItem = Storage.prototype.setItem;
-                Storage.prototype.setItem = function () {};
-                // onError(
-                //   'Your web browser does not support storing settings locally. In Safari, the most common cause of this is using "Private Browsing Mode". Some settings may not save or some features may not work properly for you.'
-                // );
+                MessageBox('提示', '请关闭无痕模式后，在访问');
               }
             }
-            this.$store.commit('LogInDate', res.data.data);
-            this.$router.push("/home");
           } else {
             onError("请输入正确的用户名密码");
           }
@@ -99,19 +96,16 @@ export default {
           onError(error);
         });
     },
-    checkon() {
-      console.log(this.accounts);
-    },
     init() {
-      let account = localStorage.getItem("account");
-      let pwd = localStorage.getItem("password");
+      let account = sessionStorage.getItem("account");
+      let pwd = sessionStorage.getItem("password");
       if (account) {
         this.loginForm.userName = account;
-        this.pwd = true;
+        // this.pwd = true;
       }
       if (pwd) {
         this.loginForm.password = pwd;
-        this.account = true;
+        // this.account = true;
       }
       // setTimeout(() => {
       //   this.showLogin = true;

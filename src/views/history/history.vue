@@ -13,16 +13,16 @@
     </div>
     <div class="btns" v-show="trajectory">
       <div class="btnInfo">
-        <mt-button size="small" type="default" @click="startOnclick">
+        <mt-button :class="{'active': actived === 'start'}" size="small" type="default" @click="startOnclick">
           <i class="iconfont icon-ic_song_next"></i>
         </mt-button>
-        <mt-button size="small" type="default" @click="pauseOnclick">
+        <mt-button :class="{'active': actived === 'pause'}" size="small" type="default" @click="pauseOnclick">
           <i class="iconfont icon-artboard25copy"></i>
         </mt-button>
-        <mt-button size="small" type="default" @click="resumeOnclick">
+        <mt-button :class="{'active': actived === 'resume'}" size="small" type="default" @click="resumeOnclick">
           <i class="iconfont icon-icons-resume_button"></i>
         </mt-button>
-        <mt-button size="small" type="default" @click="stopOnclick">
+        <mt-button :class="{'active': actived === 'stop'}" size="small" type="default" @click="stopOnclick">
           <i class="iconfont icon-stop"></i>
         </mt-button>
       </div>
@@ -72,6 +72,7 @@ export default {
   },
   data() {
     return {
+      actived: '',
       naxtBtn: true,
       previousBtn: false,
       trajectory: false,
@@ -473,19 +474,22 @@ export default {
     },
     // 开始运动
     startOnclick() {
-      console.log(navg);
+      this.actived = 'start';
       navg.start();
     },
     // 暂停运动
     pauseOnclick() {
+      this.actived = 'pause';
       navg.pause();
     },
     // 继续运动
     resumeOnclick() {
+      this.actived = 'resume';
       navg.resume();
     },
     // 停止运动
     stopOnclick() {
+      this.actived = 'stop';
       navg.stop();
       // map.clearMap();
     },
@@ -517,6 +521,7 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
+  overflow: hidden;
   .mask {
     position: absolute;
     top: $baseHeader;
@@ -558,9 +563,15 @@ export default {
     padding: 0 15px;
     .btnInfo {
       flex: 1;
+      font-size: 0;
       button {
         margin-right: 3px;
         box-shadow: 0px 0px 10px #333333;
+        &.active {
+          background: #fff;
+          border-color: #409EFF;
+          color: #409EFF;
+        }
       }
     }
     .ranges {

@@ -19,11 +19,11 @@
   box-sizing: border-box;
   -webkit-tap-highlight-color:transparent;
   -webkit-font-smoothing: antialiased;
-  -webkit-overflow-scrolling:touch;
+  // -webkit-overflow-scrolling:touch;
   outline: none;
 }
-// html, body, #app{
-//   height: 100%;
-//   width: 100%;
-// }
+html, body, #app{
+  height: 100%;
+  width: 100%;
+}
 </style>

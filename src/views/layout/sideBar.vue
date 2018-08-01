@@ -2,7 +2,7 @@
   <div class="sidebar" :class="collapse? 'openSidebar' : 'closeSidebar'">
     <div @click="colseSideBar" class="mask"></div>
     <ul>
-      <li v-for="item in items" :key="item.index" @click="colseSideBar">
+      <li v-for="item in items" :key="item.index" @click="colseSideBar(item)">
         <router-link :to="'/'+item.index">
           <i :class="item.icon"></i>{{item.title}}</router-link>
       </li>
@@ -25,7 +25,7 @@ export default {
   methods: {
     sideBarData() {
       this.items = menuList();
-      const loginData = JSON.parse(localStorage.getItem("loginData"));
+      const loginData = JSON.parse(sessionStorage.getItem("loginData"));
       if (loginData.userRole === "plat_super_admin") {
         this.items.push({
           icon: "iconfont icon-device",
@@ -34,9 +34,13 @@ export default {
         });
       }
     },
-    colseSideBar() {
+    colseSideBar(item) {
       this.collapse = !this.collapse;
-      bus.$emit("collapsed", this.collapse);
+      sessionStorage.setItem('projectTit', item.title);
+      bus.$emit("collapsed", {
+        collapse: this.collapse,
+        msg: item.title
+      });
     }
   },
   mounted() {

@@ -59,6 +59,12 @@ module.exports = {
     "no-param-reassign": 0,
     "object-shorthand": 0,
     "no-plusplus": 0,
-    "arrow-body-style": 0
+    "arrow-body-style": 0,
+    "consistent-return": 0,
+    'no-unused-expressions': 0,
+    "no-unneeded-ternary": 0,
+    "no-underscore-dangle": 0,
+    "no-new": 0,
+    "vars-on-top": 0
   }
 }

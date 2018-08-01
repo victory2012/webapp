@@ -1,22 +1,39 @@
 <template>
   <div class="header">
-    <mt-header fixed :title="username">
+    <!-- <mt-header fixed :title="titles">
       <mt-button @click="triggerList" slot="left">
-        <i class="iconfont icon-list1"></i>
+        <i class="iconfont icon-list3"></i>
+        {{username}}
       </mt-button>
-      <mt-button icon="more" @click="showMore" slot="right"></mt-button>
-    </mt-header>
+      <mt-button @click="showMore" slot="right">
+        {{custormname}}
+        <i class="iconfont icon-icon11 more"></i>
+      </mt-button>
+    </mt-header> -->
+    <header class="fixedHeader">
+      <div @click="triggerList" class="is_left">
+        <i class="iconfont icon-list3"></i>
+        {{username}}
+      </div>
+      <div>{{titles}}</div>
+      <div @click="showMore" class="is_right">
+        {{custormname}}
+        <i class="iconfont icon-icon11 more"></i>
+      </div>
+    </header>
     <div class="userInfo" :class="[showIt ? 'showit' :'']">
-      <ul>
-        <li>
+      <ul @click="showMore">
+        <li @click="toUser">
           <i class="iconfont icon-user"></i>
-          <router-link to="/user">个人信息</router-link>
+          个人信息
+          <!-- <router-link to="/user">个人信息</router-link> -->
         </li>
-        <li>
+        <li @click="toPassword">
           <i class="iconfont icon-password"></i>
-          <router-link to="/password">修改密码</router-link>
+          修改密码
+          <!-- <router-link to="/password">修改密码</router-link> -->
         </li>
-        <li @click="handleCommand">
+        <li @click="logout">
           <i class="iconfont icon-logout"></i>
           <span>退出登录</span>
         </li>
@@ -31,25 +48,43 @@ export default {
   data() {
     return {
       showIt: false,
-      collapse: false
+      collapse: false,
+      titles: sessionStorage.getItem('projectTit') || '电池总览'
     };
   },
   computed: {
     username() {
-      // let userData = JSON.parse(localStorage.getItem("loginData"));
-      let userData = JSON.parse(localStorage.getItem("loginData")) || this.$store.state.LogInDate;
-      return userData ? `${userData.enterpriseName}-${userData.userName}` : "";
+      let userData = JSON.parse(sessionStorage.getItem("loginData")) || this.$store.state.LogInDate;
+      let enterprise = userData ? `${userData.enterpriseName}` : "";
+      return enterprise;
+    },
+    custormname() {
+      let userData = JSON.parse(sessionStorage.getItem("loginData")) || this.$store.state.LogInDate;
+      return userData ? `${userData.userName}` : "";
     }
   },
   mounted() {
-    bus.$on("collapsed", msg => {
-      this.collapse = msg;
+    bus.$on("collapsed", key => {
+      this.collapse = key.collapse;
+      this.titles = key.msg;
+      sessionStorage.setItem('projectTit', key.msg);
     });
   },
   methods: {
-    handleCommand() {
-      localStorage.removeItem("loginData");
+    logout() {
+      sessionStorage.removeItem("loginData");
+      sessionStorage.removeItem("projectTit");
       this.$router.push("/login");
+    },
+    toUser() {
+      this.$router.push("/user");
+      this.titles = '个人信息';
+      sessionStorage.setItem('projectTit', this.titles);
+    },
+    toPassword() {
+      this.$router.push("/password");
+      this.titles = '修改密码';
+      sessionStorage.setItem('projectTit', this.titles);
     },
     showMore() {
       this.showIt = !this.showIt;
@@ -69,9 +104,45 @@ export default {
   height: $baseHeader;
   line-height: $baseHeader;
   border-bottom: 1px solid #cccccc;
-  .iconfont {
-    font-size: px2rem(24px);
+  .fixedHeader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0 10px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 0;
+    width: 100%;
+    color: #ffffff;
+    background-color: #26a2ff;
+    z-index: 66666;
+    div {
+      font-size: 14px;
+      display: inline-block;
+      width: 33.33%;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      &.is_left {
+        text-align: left;
+      }
+      &.is_right {
+        text-align: right;
+      }
+      .iconfont {
+        vertical-align: middle;
+      }
+    }
   }
+  // .iconfont {
+  //   // font-size: px2rem(16px);
+  //   vertical-align: middle;
+  // }
+  // .more {
+  //   font-size: px2rem(12px);
+  // }
   .userInfo {
     position: absolute;
     top: ($baseHeader + 5px);
@@ -102,4 +173,5 @@ export default {
     }
   }
 }
+
 </style>

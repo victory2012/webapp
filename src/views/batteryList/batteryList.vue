@@ -9,8 +9,8 @@
         <li class="index">详情</li>
       </ul>
     </div>
-    <div class="tableBody"  ref="wrapper" :style="{ height: wrapperHeight + 'px' }">
-      <mt-loadmore :bottom-method="loadBottom"  @bottom-status-change="handleBottomChange" :auto-fill="false" :bottom-all-loaded="allLoaded" ref="loadmore">
+    <div class="tableBody" ref="wrapper" :style="{ height: wrapperHeight + 'px' }">
+      <mt-loadmore :bottom-method="loadBottom" @bottom-status-change="handleBottomChange" :auto-fill="false" :bottom-all-loaded="allLoaded" ref="loadmore">
         <ul>
           <li v-for=" (key, index) in tableData" :key="key.id">
             <div class="index">{{index +1}}</div>
@@ -28,11 +28,10 @@
         </div>
       </mt-loadmore>
     </div>
-    <div class="details" :class="[showIt ? 'showDetail': '']">
+    <mt-popup v-model="showIt" popup-transition="popup-fade">
       <div class="table">
         <div class="header">
           电池详情
-          <i @click="closeDetail" class="iconfont icon-close"></i>
         </div>
         <div class="info">
           <ul>
@@ -67,11 +66,11 @@
           </ul>
         </div>
       </div>
-    </div>
+    </mt-popup>
   </div>
 </template>
 <script>
-import { Loadmore, Spinner } from "mint-ui";
+import { Loadmore, Spinner, Popup } from "mint-ui";
 import {
   // addBattery,
   // deviceListOnly,
@@ -83,7 +82,8 @@ import { onTimeOut, onError } from "../../utils/callback";
 export default {
   components: {
     "mt-spinner": Spinner,
-    "mt-loadmore": Loadmore
+    "mt-loadmore": Loadmore,
+    "mt-popup": Popup
   },
   data() {
     return {
@@ -123,7 +123,7 @@ export default {
         .then(res => {
           // this.loading = false;
           console.log(res);
-          this.bottomStatus = '';
+          this.bottomStatus = "";
           let result = res.data;
           if (result.code === 1) {
             onTimeOut(this.$router);
@@ -164,9 +164,6 @@ export default {
       this.detailObj = key;
       this.showIt = true;
     },
-    closeDetail() {
-      this.showIt = false;
-    },
     LookRun(key) {
       if (!key.OLS) return;
       let userData = JSON.parse(localStorage.getItem("loginData"));
@@ -196,7 +193,7 @@ export default {
   left: 0;
   bottom: 0;
   overflow: scroll;
-  font-size: px2rem(14px);
+  font-size: px2rem($tableFont);
   background: #fcfbfb;
   .tableHead {
     position: fixed;
@@ -210,6 +207,7 @@ export default {
     ul {
       display: flex;
       li {
+        font-weight: 500;
         height: 40px;
         line-height: 40px;
         flex: 1;
@@ -261,57 +259,40 @@ export default {
       }
     }
   }
-  .details {
-    position: fixed;
-    top: $baseHeader;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    // background: rgba($color: #000000, $alpha: 0.3);
-    z-index: 99;
-    opacity: 0;
-    transition: all 0.3s ease-in;
-    transform: scale(0);
-    // display: none;
-    &.showDetail {
-      // display: block;
-      transform: scale(1);
-      opacity: 1;
+}
+.table {
+  padding: px2rem(8px) px2rem(15px);
+  position: absolute;
+  width: px2rem(275px);
+  height: auto;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  border-radius: 3px;
+  // box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  .header {
+    font-size: px2rem(14px);
+    height: px2rem(30px);
+    line-height: px2rem(30px);
+    border-bottom: 1px dashed #e5e5e5;
+    i {
+      float: right;
+      font-size: px2rem(14px);
     }
-    .table {
-      padding: px2rem(8px) px2rem(15px);
-      position: absolute;
-      width: px2rem(275px);
-      height: auto;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #ffffff;
-      border-radius: 3px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      .header {
-        font-size: px2rem(16px);
-        height: px2rem(30px);
-        line-height: px2rem(30px);
-        border-bottom: 1px dashed #e5e5e5;
-        i {
-          float: right;
-          font-size: px2rem(14px);
-        }
-      }
-      .info {
-        li {
-          height: px2rem(45px);
-          line-height: px2rem(45px);
-          display: flex;
-          div {
-            flex: 1;
-            color: #494848;
-            &.cons {
-              color: #333;
-              text-align: right;
-            }
-          }
+  }
+  .info {
+    li {
+      font-size: px2rem($tableFont);
+      height: px2rem(45px);
+      line-height: px2rem(45px);
+      display: flex;
+      div {
+        flex: 1;
+        color: #494848;
+        &.cons {
+          color: #333;
+          text-align: right;
         }
       }
     }

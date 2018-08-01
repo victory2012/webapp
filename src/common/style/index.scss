@@ -1,5 +1,6 @@
 $baseFont: 37.5px;
 $baseHeader: 40px;
+$tableFont: 12px;
 @function px2rem ($px) {
   @return ($px/$baseFont) +rem;
 }

@@ -28,11 +28,10 @@
         </div>
       </mt-loadmore>
     </div>
-    <div class="details" :class="[showIt ? 'showDetail': '']">
+    <mt-popup v-model="showIt" popup-transition="popup-fade">
       <div class="table">
         <div class="header">
           设备详情
-          <i @click="closeDetail" class="iconfont icon-close"></i>
         </div>
         <div class="info">
           <ul>
@@ -69,7 +68,7 @@
           </ul>
         </div>
       </div>
-    </div>
+    </mt-popup>
     <div class="pb" @click="ToaddDevice">添加设备</div>
     <!-- <mt-palette-button content="添加设备" @expand="main_log('expand')" @expanded="main_log('expanded')"
       class="pb" :radius="80" ref="target_1" mainButtonStyle="color:#fff;background-color:#26a2ff;font-size: 12px;">
@@ -79,7 +78,7 @@
   </div>
 </template>
 <script>
-import { Loadmore, Spinner } from "mint-ui";
+import { Loadmore, Spinner, Popup, MessageBox } from "mint-ui";
 import {
   deviceList,
   // createDeviceList,
@@ -92,7 +91,8 @@ import { onTimeOut, onError } from "../../utils/callback";
 export default {
   components: {
     "mt-spinner": Spinner,
-    "mt-loadmore": Loadmore
+    "mt-loadmore": Loadmore,
+    "mt-popup": Popup
   },
   data() {
     return {
@@ -131,7 +131,7 @@ export default {
       };
       deviceList(pageObj).then(res => {
         let result = res.data;
-        this.bottomStatus = '';
+        this.bottomStatus = "";
         if (result.code === 1) {
           onTimeOut(this.$router);
         }
@@ -187,27 +187,28 @@ export default {
       this.detailObj = key;
       this.showIt = true;
     },
-    closeDetail() {
-      this.showIt = false;
-    },
     LookRun() {
       let userData = JSON.parse(localStorage.getItem("loginData"));
       let deviceId = this.detailObj.deviceId;
-      if (userData.mapType === 0) {
-        this.$router.push({
-          path: "position",
-          query: { deviceId: deviceId }
-        });
-      }
-      if (userData.mapType === 1) {
-        this.$router.push({
-          path: "googlePos",
-          query: { deviceId: deviceId }
-        });
+      if (this.detailObj.onlineStatus === 1) {
+        if (userData.mapType === 0) {
+          this.$router.push({
+            path: "position",
+            query: { deviceId: deviceId }
+          });
+        }
+        if (userData.mapType === 1) {
+          this.$router.push({
+            path: "googlePos",
+            query: { deviceId: deviceId }
+          });
+        }
+      } else {
+        MessageBox('提示', '此设备当前处于离线状态，不能查看当前位置');
       }
     },
-    ToaddDevice(str) {
-      console.log(str);
+    ToaddDevice() {
+      // console.log(str);
       this.$router.push("addevice");
     }
   }
@@ -222,7 +223,7 @@ export default {
   left: 0;
   bottom: 0;
   overflow: scroll;
-  font-size: px2rem(14px);
+  font-size: px2rem($tableFont);
   background: #fcfbfb;
   .tableHead {
     position: fixed;
@@ -236,6 +237,7 @@ export default {
     ul {
       display: flex;
       li {
+        font-weight: 500;
         height: 40px;
         line-height: 40px;
         flex: 1;
@@ -286,62 +288,6 @@ export default {
       }
     }
   }
-  .details {
-    position: fixed;
-    top: $baseHeader;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    // background: rgba($color: #000000, $alpha: 0.3);
-    z-index: 99;
-    opacity: 0;
-    transition: all 0.3s ease-in;
-    transform: scale(0);
-    // display: none;
-    &.showDetail {
-      // display: block;
-      transform: scale(1);
-      opacity: 1;
-    }
-    .table {
-      padding: px2rem(8px) px2rem(15px);
-      position: absolute;
-      width: px2rem(275px);
-      height: auto;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #ffffff;
-      border-radius: 3px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      .header {
-        font-size: px2rem(16px);
-        height: px2rem(30px);
-        line-height: px2rem(30px);
-        border-bottom: 1px dashed #e5e5e5;
-        i {
-          float: right;
-          font-size: px2rem(14px);
-        }
-      }
-      .info {
-        li {
-          height: px2rem(45px);
-          line-height: px2rem(45px);
-          display: flex;
-          div {
-            flex: 1;
-            color: #494848;
-            &.cons {
-              flex: 0 0 px2rem(160px);
-              color: #333;
-              text-align: right;
-            }
-          }
-        }
-      }
-    }
-  }
   .pb {
     position: fixed;
     bottom: 20px;
@@ -351,11 +297,50 @@ export default {
     border-radius: 50%;
     color: #fff;
     background-color: #26a2ff;
-    font-size: 12px;
+    font-size: px2rem($tableFont);
     text-align: center;
     line-height: 56px;
     .mint-main-button {
       font-size: px2rem(12px);
+    }
+  }
+}
+.table {
+  padding: px2rem(8px) px2rem(15px);
+  position: absolute;
+  width: px2rem(275px);
+  height: auto;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  border-radius: 3px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  .header {
+    font-size: px2rem(14px);
+    height: px2rem(30px);
+    line-height: px2rem(30px);
+    border-bottom: 1px dashed #e5e5e5;
+    i {
+      float: right;
+      font-size: px2rem(14px);
+    }
+  }
+  .info {
+    li {
+      font-size: px2rem($tableFont);
+      height: px2rem(45px);
+      line-height: px2rem(45px);
+      display: flex;
+      div {
+        flex: 1;
+        color: #494848;
+        &.cons {
+          flex: 0 0 px2rem(160px);
+          color: #333;
+          text-align: right;
+        }
+      }
     }
   }
 }

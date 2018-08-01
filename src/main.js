@@ -2,8 +2,8 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue';
 import {
-  Button,
-  Header
+  Button
+  // Header
 } from 'mint-ui';
 import Vuex from "vuex";
 import FastClick from 'fastclick';
@@ -17,7 +17,7 @@ import createStore from './store/store';
 Vue.config.productionTip = false;
 FastClick.attach(document.body);
 Vue.use(Vuex);
-Vue.component(Header.name, Header);
+// Vue.component(Header.name, Header);
 Vue.component(Button.name, Button);
 const store = createStore();
 /* eslint-disable no-new */

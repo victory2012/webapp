@@ -127,7 +127,7 @@ export default {
         }
       });
     },
-    mapInit(obj) {
+    mapInit(obj, type) {
       let allmarkerArr = Object.values(obj);
       allmarkerArr.forEach(key => {
         let lngs = key.toString().split(",");
@@ -144,6 +144,9 @@ export default {
         });
         this.markers.push(marker);
       });
+      if (type) {
+        map.setFitView(); // 地图自适应
+      }
     },
     /*
       http请求 获取全部电池设备
@@ -172,7 +175,7 @@ export default {
                   this.sendData.param.push(key.deviceId);
                 }
               });
-              this.mapInit(pointerObj);
+              this.mapInit(pointerObj, 'http');
               this.sockets(JSON.stringify(this.sendData));
               // setTimeout(() => {
               //   if (ws && ws.readyState === 1) {
