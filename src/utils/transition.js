@@ -1,8 +1,3 @@
-// const replaceTime = (time) => {
-//   /* eslint-disable */
-//   return time.replace(/\-/g, "/");
-// };
-
 export function timeFormat(time) {
   if (!time) return;
   let timeDate = new Date(time);
@@ -17,9 +12,24 @@ export function timeFormat(time) {
   hours = hours < 10 ? `0${hours}` : hours;
   minute = minute < 10 ? `0${minute}` : minute;
   second = second < 10 ? `0${second}` : second;
-  return `${year}-${mounth}-${day} ${hours}:${minute}:${second}`;
+  return `${year}/${mounth}/${day} ${hours}:${minute}:${second}`;
 }
 
+export function nowDate() {
+  let timeDate = new Date();
+  let year = timeDate.getFullYear();
+  let mounth = timeDate.getMonth() + 1;
+  let day = timeDate.getDate();
+  let hours = timeDate.getHours();
+  let minute = timeDate.getMinutes();
+  let second = timeDate.getSeconds();
+  mounth = mounth < 10 ? `0${mounth}` : mounth;
+  day = day < 10 ? `0${day}` : day;
+  hours = hours < 10 ? `0${hours}` : hours;
+  minute = minute < 10 ? `0${minute}` : minute;
+  second = second < 10 ? `0${second}` : second;
+  return `${year}/${mounth}/${day} ${hours}:${minute}:${second}`;
+}
 export function yymmdd(time) {
   if (!time) return;
   let timeDate = new Date(time);
@@ -28,9 +38,8 @@ export function yymmdd(time) {
   let day = timeDate.getDate();
   mounth = mounth < 10 ? `0${mounth}` : mounth;
   day = day < 10 ? `0${day}` : day;
-  return `${year}-${mounth}-${day}`;
+  return `${year}/${mounth}/${day}`;
 }
-
 
 export function hhmmss(time) {
   if (!time) return;
@@ -42,6 +51,18 @@ export function hhmmss(time) {
   minute = minute < 10 ? `0${minute}` : minute;
   second = second < 10 ? `0${second}` : second;
   return `${hours}:${minute}:${second}`;
+}
+
+export function computedTime(time) {
+  if (!time) return;
+  let splicTime = time.toString().split('+');
+  let timeZoneHour = splicTime[1].substring(0, 2);
+  let timeZoneSs = splicTime[1].substring(2, 2);
+  let stampHour = Number(timeZoneHour) * 3600000;
+  let stampSs = Number(timeZoneSs) * 60000;
+  let timeSencd = new Date(splicTime[0]).getTime();
+  let resultSecond = stampHour + stampSs + timeSencd;
+  return resultSecond;
 }
 
 export function timeFormatSort(time) {
@@ -78,7 +99,7 @@ export function timeFormats(time) {
   hours = hours < 10 ? `0${hours}` : hours;
   minute = minute < 10 ? `0${minute}` : minute;
   second = second < 10 ? `0${second}` : second;
-  return `${year}-${mounth}-${day} ${hours}:${minute}:${second}`;
+  return `${year}/${mounth}/${day} ${hours}:${minute}:${second}`;
   // return year + "-" + mounth + "-" + day + "  " + hours + ":" + minute + ":" + second;
 }
 
@@ -90,7 +111,7 @@ export function trakTimeformat(str) {
   let hour = str.substring(6, 8);
   let minute = str.substring(8, 10);
   let seconds = str.substring(10, 12);
-  return `20${yy}-${mm}-${day} ${hour}:${minute}:${seconds}`;
+  return `20${yy}/${mm}/${day} ${hour}:${minute}:${seconds}`;
 }
 
 export function yesTody() {
@@ -100,11 +121,13 @@ export function yesTody() {
   let yy = str.getFullYear();
   let mm = str.getMonth() + 1;
   let day = str.getDate();
+  mm = mm < 10 ? `0${mm}` : mm;
+  day = day < 10 ? `0${day}` : day;
   // let hours = str.getHours();
   // let minute = str.getMinutes();
   // let second = str.getSeconds();
   // return `${yy}-${mm}-${day} ${hours}:${minute}:${second}`;
-  return `${yy}-${mm}-${day} 00:00:00`;
+  return `${yy}/${mm}/${day} 00:00:00`;
 }
 
 export function userRole(str) {
@@ -142,4 +165,16 @@ export function sortGps(str) {
   let las = pos[1].substring(0, 6);
   let result = `${pos[0]}.${las}`;
   return result;
+}
+
+export function setStorage(name, data) {
+  localStorage.setItem(name, data);
+}
+
+export function getStorage(name) {
+  return localStorage.getItem(name);
+}
+
+export function clearStorage(name) {
+  localStorage.removeItem(name);
 }

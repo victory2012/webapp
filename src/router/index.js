@@ -13,10 +13,10 @@ const batteryList = () => import(/* webpackChunkName: "batteryList" */ '../views
 const alarm = () => import(/* webpackChunkName: "alarm" */ '../views/alarm/alarm.vue');
 const userMg = () => import(/* webpackChunkName: "userMg" */ '../views/userManage/userMg.vue');
 const devices = () => import(/* webpackChunkName: "device" */ '../views/device/device.vue');
-const addDevices = () => import(/* webpackChunkName: "addDevice" */ '../views/add/device.vue');
-const userInfo = () => import(/* webpackChunkName: "addDevice" */ '../views/user/users.vue');
-const password = () => import(/* webpackChunkName: "addDevice" */ '../views/password/password.vue');
-const alarms = () => import(/* webpackChunkName: "addDevice" */ '../views/alarmPosition/alert.vue');
+const addDevices = () => import(/* webpackChunkName: "addDevices" */ '../views/add/device.vue');
+const userInfo = () => import(/* webpackChunkName: "userInfo" */ '../views/user/users.vue');
+const password = () => import(/* webpackChunkName: "password" */ '../views/password/password.vue');
+const alarms = () => import(/* webpackChunkName: "alarms" */ '../views/alarmPosition/alert.vue');
 
 
 Vue.use(Router);

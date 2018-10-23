@@ -3,22 +3,23 @@
     <div class="tableHead">
       <ul>
         <li class="index">序号</li>
-        <li class="times">告警内容</li>
+        <li class="times">告警时间</li>
         <li>电池编号</li>
-        <li class="devices">设备编号</li>
+        <li class="devices">告警内容</li>
         <li class="index">操作</li>
       </ul>
     </div>
     <div class="tableBody" ref="wrapper" :style="{ height: wrapperHeight + 'px' }">
-      <mt-loadmore :bottom-method="loadBottom" :auto-fill="false" @bottom-status-change="handleBottomChange" :bottom-all-loaded="allLoaded" ref="loadmore">
+      <mt-loadmore :bottom-method="loadBottom" :auto-fill="false" :bottomDistance='40' @bottom-status-change="handleBottomChange" :bottom-all-loaded="allLoaded" ref="loadmore">
         <ul class="page-loadmore-list">
           <li v-for=" (key, index) in tableData" :key="key.id">
             <div class="index">{{index +1}}</div>
-            <div>
-              {{key.content}}
+            <div class="times">
+              <p>{{key.hhmmss}}</p>
+              <p>{{key.yymmdd}}</p>
             </div>
             <div>{{key.batteryId}}</div>
-            <div class="devices">{{key.deviceId}}</div>
+            <div class="devices">{{key.content}}</div>
             <div @click="Details(key)" class="blueColor index">详情</div>
           </li>
         </ul>
@@ -47,7 +48,7 @@
             </li>
             <li>
               <div>告警时间</div>
-              <div class="cons">{{detailObj.startTime}}</div>
+              <div class="cons">{{detailObj.alarmedTime}}</div>
             </li>
             <li>
               <div>告警内容</div>
@@ -70,9 +71,9 @@
   </div>
 </template>
 <script>
-import { Loadmore, Spinner, Popup } from "mint-ui";
+import { Loadmore, Spinner, Popup, Indicator } from "mint-ui";
 import { alarmList } from "../../api/index";
-import { yymmdd, hhmmss, sortGps } from "../../utils/transition";
+import { sortGps } from "../../utils/transition";
 import { onTimeOut, onError } from "../../utils/callback";
 
 export default {
@@ -98,11 +99,10 @@ export default {
     },
     loadBottom() {
       this.pageNum++;
-      setTimeout(() => {
-        this.getData();
-      }, 1000);
+      this.getData();
     },
     getData() {
+      Indicator.open();
       let pageObj = {
         pageNum: this.pageNum,
         pageSize: 20
@@ -110,6 +110,7 @@ export default {
       alarmList(pageObj)
         .then(res => {
           console.log(res);
+          Indicator.close();
           this.bottomStatus = "";
           if (res.data.code === 1) {
             onTimeOut(this.$router);
@@ -123,8 +124,11 @@ export default {
               }
               result.data.forEach(key => {
                 let obj = {};
-                obj.hhmmss = hhmmss(key.alarmedTime);
-                obj.yymmdd = yymmdd(key.alarmedTime);
+                let resultTime = key.alarmedTime.toString().split(" ");
+                // obj.last = timeFormats(resultTime);
+                obj.alarmedTime = key.alarmedTime;
+                obj.hhmmss = resultTime[1];
+                obj.yymmdd = resultTime[0];
                 obj.batteryId = key.batteryId; // 电池id
                 obj.deviceId = key.deviceId; // 设备id
                 obj.content = key.msg; // 告警内容
@@ -132,7 +136,6 @@ export default {
                 obj.grid = `${sortGps(key.longitude)};${sortGps(key.latitude)}`;
                 this.tableData.push(obj);
               });
-              // onErrors(new Date("2018\-07\-25T13:47:46.000+0000"));
             } else {
               onError("暂无数据");
             }
@@ -156,10 +159,6 @@ export default {
     Details(key) {
       this.showIt = true;
       this.detailObj = key;
-    },
-    closed() {
-      this.showIt = false;
-      this.detailObj = {};
     }
   },
   mounted() {
@@ -248,6 +247,7 @@ export default {
         p {
           font-size: px2rem(12px);
           line-height: normal;
+          // text-align: right;
         }
       }
     }

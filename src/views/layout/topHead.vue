@@ -13,11 +13,11 @@
     <header class="fixedHeader">
       <div @click="triggerList" class="is_left">
         <i class="iconfont icon-list3"></i>
-        {{username}}
+        {{enterpriseName}}
       </div>
       <div>{{titles}}</div>
       <div @click="showMore" class="is_right">
-        {{custormname}}
+        {{userName}}
         <i class="iconfont icon-icon11 more"></i>
       </div>
     </header>
@@ -42,49 +42,54 @@
   </div>
 </template>
 <script>
+import { mapGetters } from "vuex";
 import bus from "../../utils/bus";
+import { getStorage, setStorage, clearStorage } from "../../utils/transition";
 
 export default {
   data() {
     return {
       showIt: false,
       collapse: false,
-      titles: sessionStorage.getItem('projectTit') || '电池总览'
+      titles: getStorage("projectTit") || "电池总览"
     };
   },
   computed: {
-    username() {
-      let userData = JSON.parse(sessionStorage.getItem("loginData")) || this.$store.state.LogInDate;
-      let enterprise = userData ? `${userData.enterpriseName}` : "";
-      return enterprise;
-    },
-    custormname() {
-      let userData = JSON.parse(sessionStorage.getItem("loginData")) || this.$store.state.LogInDate;
-      return userData ? `${userData.userName}` : "";
-    }
+    ...mapGetters(["enterpriseName", "userName"])
+    // username() {
+    //   let userData =
+    //     JSON.parse(getStorage("loginData")) || this.$store.state.LogInDate;
+    //   let enterprise = userData ? `${userData.enterpriseName}` : "";
+    //   return enterprise;
+    // },
+    // custormname() {
+    //   let userData =
+    //     JSON.parse(getStorage("loginData")) || this.$store.state.LogInDate;
+    //   return userData ? `${userData.userName}` : "";
+    // }
   },
   mounted() {
     bus.$on("collapsed", key => {
       this.collapse = key.collapse;
       this.titles = key.msg;
-      sessionStorage.setItem('projectTit', key.msg);
+      setStorage("projectTit", key.msg);
     });
   },
   methods: {
     logout() {
-      sessionStorage.removeItem("loginData");
-      sessionStorage.removeItem("projectTit");
+      clearStorage("loginData");
+      clearStorage("projectTit");
       this.$router.push("/login");
     },
     toUser() {
       this.$router.push("/user");
-      this.titles = '个人信息';
-      sessionStorage.setItem('projectTit', this.titles);
+      this.titles = "个人信息";
+      setStorage("projectTit", this.titles);
     },
     toPassword() {
       this.$router.push("/password");
-      this.titles = '修改密码';
-      sessionStorage.setItem('projectTit', this.titles);
+      this.titles = "修改密码";
+      setStorage("projectTit", this.titles);
     },
     showMore() {
       this.showIt = !this.showIt;
@@ -173,5 +178,4 @@ export default {
     }
   }
 }
-
 </style>

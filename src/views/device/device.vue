@@ -78,14 +78,14 @@
   </div>
 </template>
 <script>
-import { Loadmore, Spinner, Popup, MessageBox } from "mint-ui";
+import { Loadmore, Spinner, Popup, MessageBox, Indicator } from "mint-ui";
 import {
   deviceList,
   // createDeviceList,
   enterpriseList,
   enterpriseCustomer
 } from "../../api/index";
-import { timeFormats } from "../../utils/transition";
+import { getStorage } from "../../utils/transition";
 import { onTimeOut, onError } from "../../utils/callback";
 
 export default {
@@ -125,12 +125,15 @@ export default {
       }, 1000);
     },
     getData() {
+      Indicator.open();
       let pageObj = {
         pageSize: 15,
         pageNum: this.pageNum
       };
       deviceList(pageObj).then(res => {
         let result = res.data;
+        Indicator.close();
+        console.log(result);
         this.bottomStatus = "";
         if (result.code === 1) {
           onTimeOut(this.$router);
@@ -144,13 +147,15 @@ export default {
             this.totalPage = result.data.total;
             this.tableData = [];
             tableObj.forEach(key => {
+              // let resultTime = key.createTime;
               if (key.bindingStatus === 0) {
                 key.bindingName = "未绑定";
               } else {
                 key.bindingName = "已绑定";
               }
               key.online = key.onlineStatus === 0 ? "离线" : "在线";
-              key.createTime = timeFormats(key.createTime);
+              // key.createTime = timeFormats(resultTime);
+              // key.createTimea = timeFormats(resultTime);
               key.status = key.status === 0 ? true : false;
               this.tableData.push(key);
             });
@@ -188,7 +193,7 @@ export default {
       this.showIt = true;
     },
     LookRun() {
-      let userData = JSON.parse(localStorage.getItem("loginData"));
+      let userData = JSON.parse(getStorage("loginData"));
       let deviceId = this.detailObj.deviceId;
       if (this.detailObj.onlineStatus === 1) {
         if (userData.mapType === 0) {

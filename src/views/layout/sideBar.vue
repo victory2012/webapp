@@ -13,7 +13,7 @@
 <script>
 import menuList from "../../config/sideBarData";
 import bus from "../../utils/bus";
-// import { onErrors } from "../../utils/callback";
+import { getStorage, setStorage } from "../../utils/transition";
 
 export default {
   data() {
@@ -25,18 +25,22 @@ export default {
   methods: {
     sideBarData() {
       this.items = menuList();
-      const loginData = JSON.parse(sessionStorage.getItem("loginData"));
+      const loginData = JSON.parse(getStorage("loginData"));
       if (loginData.userRole === "plat_super_admin") {
         this.items.push({
           icon: "iconfont icon-device",
           index: "device",
-          title: "设备管理"
+          title: "device"
         });
       }
+      this.items.forEach(key => {
+        key.title = this.$t(`menu.${key.title}`);
+      });
     },
+
     colseSideBar(item) {
       this.collapse = !this.collapse;
-      sessionStorage.setItem('projectTit', item.title);
+      setStorage("projectTit", item.title);
       bus.$emit("collapsed", {
         collapse: this.collapse,
         msg: item.title

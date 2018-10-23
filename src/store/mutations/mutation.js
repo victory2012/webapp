@@ -3,6 +3,6 @@ export default {
     state.count = num;
   },
   LogInDate(state, data) {
-    state.LogInDate = data;
+    state.loginData = data;
   }
 };

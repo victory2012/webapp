@@ -1,39 +1,39 @@
 export default function menuList() {
-  return [
-    {
+  /* eslint-disable */
+  return [{
       icon: "iconfont icon-eye",
       index: "home",
-      title: "电池总览"
+      title: "overview"
     },
     {
       icon: "iconfont icon-position",
       index: "position",
-      title: "实时位置"
+      title: "realposition"
     },
     {
       icon: "iconfont icon-list",
       index: "history",
-      title: "历史轨迹"
+      title: "history"
     },
     {
       icon: "iconfont icon-electricfence",
       index: "fence",
-      title: "地理围栏"
+      title: "fence"
     },
     {
       icon: "iconfont icon-list",
       index: "batteryList",
-      title: "电池列表"
+      title: "batteryList"
     },
     {
       icon: "iconfont icon-data",
       index: "alarmdata",
-      title: "告警数据"
+      title: "alarm"
     },
     {
       icon: "iconfont icon-blueberryuserset",
       index: "userManage",
-      title: "用户管理"
+      title: "userManage"
     }
   ];
 }

@@ -78,6 +78,7 @@ import {
   // deleteBattery
 } from "../../api/index";
 import { onTimeOut, onError } from "../../utils/callback";
+import { getStorage } from "../../utils/transition";
 
 export default {
   components: {
@@ -160,13 +161,12 @@ export default {
         });
     },
     toLookDetail(key) {
-      console.log(key);
       this.detailObj = key;
       this.showIt = true;
     },
     LookRun(key) {
       if (!key.OLS) return;
-      let userData = JSON.parse(localStorage.getItem("loginData"));
+      let userData = JSON.parse(getStorage("loginData"));
       let deviceId = key.deviceId;
       if (userData.mapType === 0) {
         this.$router.push({

@@ -36,118 +36,65 @@
         </li>
       </ul>
     </div>
-    <div id="container" class="mapWarrp"></div>
+    <!-- <component :is="mapType" :propData="mapData"></component> -->
+    <gaodao-map v-if="GETMAPTYPE == 0" :propData="mapData"></gaodao-map>
+    <google-map v-if="GETMAPTYPE == 1" :propData="mapData"></google-map>
   </div>
 </template>
 <script>
-/* eslint-disable */
-import AMap from "AMap";
+import { mapGetters } from "vuex";
 import { Indicator } from "mint-ui";
 import { websockets, GetDeviceList } from "../../api/index";
 import { onTimeOut, onError, onWarn } from "../../utils/callback";
+import gaodaoMap from "./gaodeMap";
+import googleMap from "./googleMap";
 
-let map;
-let polygons = [];
-let district;
 let pointerObj = {};
 let wsTimer;
 export default {
   name: "battery",
+  components: {
+    gaodaoMap,
+    googleMap
+  },
   data() {
     return {
+      mapData: {},
       lnglats: [],
       onLine: 0,
       allDevice: 0,
       limit: false,
       offLine: 0,
       markers: [],
-      sendData: { api: "bind", param: [] },
-      selectArr: [
-        {
-          adcode: "all",
-          name: "全国"
-        }
-      ],
-      defaultOption: "全国"
+      mapType: "",
+      sendData: { api: "bind", param: [] }
     };
   },
+  computed: {
+    ...mapGetters(["GETMAPTYPE"])
+  },
   methods: {
-    getCityData(data) {
-      let bounds = data.boundaries;
-      if (bounds) {
-        for (let i = 0, l = bounds.length; i < l; i++) {
-          let polygon = new AMap.Polygon({
-            map: map,
-            strokeWeight: 1,
-            strokeColor: "#0048ff",
-            fillColor: "#99fbd2",
-            fillOpacity: 0.5,
-            path: bounds[i]
-          });
-          polygons.push(polygon);
-        }
-        map.setFitView(); // 地图自适应
-      }
-      let subList = data.districtList;
-      if (data.level === "country") {
-        // this.selectArr = subList;
-        subList.forEach(key => {
-          this.selectArr.push(key);
-        });
-      }
-      if (this.limit) {
-        setTimeout(() => {
-          map.setLimitBounds(map.getBounds());
-        }, 300);
-      }
-      // map.setFitView(); // 地图自适应
-    },
-    // 检查是否已经设置了区域设置
-    getLimitBounds() {
-      let limitBounds = map.getLimitBounds();
-      if (limitBounds) {
-        return true;
-      }
-      return false;
-    },
-    selectChange() {
-      this.limit = true;
-      // 先获取一下是否已经设置了区域限制，如果设置了 就先清除掉
-      if (this.getLimitBounds()) {
-        map.clearLimitBounds();
-      }
-      for (let i = 0, l = polygons.length; i < l; i++) {
-        polygons[i].setMap(null);
-      }
-      district.setLevel("province");
-      district.setExtensions("all");
-      district.search(this.defaultOption, (status, result) => {
-        if (status === "complete") {
-          this.getCityData(result.districtList[0]);
-        }
-      });
-    },
-    mapInit(obj, type) {
-      let allmarkerArr = Object.values(obj);
-      allmarkerArr.forEach(key => {
-        let lngs = key.toString().split(",");
-        let marker = new AMap.Marker({
-          icon: new AMap.Icon({
-            image: `http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png`,
-            size: new AMap.Size(20, 35)
-          }),
-          position: [lngs[0], lngs[1]],
-          offset: new AMap.Pixel(-12, -12),
-          zIndex: 101,
-          clickable: true,
-          map: map
-        });
-        this.markers.push(marker);
-      });
-      if (type) {
-        map.setFitView(); // 地图自适应
-      }
-    },
+    // mapInit(obj, type) {
+    //   let allmarkerArr = Object.values(obj);
+    //   allmarkerArr.forEach(key => {
+    //     let lngs = key.toString().split(",");
+    //     let marker = new AMap.Marker({
+    //       icon: new AMap.Icon({
+    //         image: `http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png`,
+    //         size: new AMap.Size(20, 35)
+    //       }),
+    //       position: [lngs[0], lngs[1]],
+    //       offset: new AMap.Pixel(-12, -12),
+    //       zIndex: 101,
+    //       clickable: true,
+    //       map: map
+    //     });
+    //     this.markers.push(marker);
+    //   });
+    //   if (type) {
+    //     map.setFitView(); // 地图自适应
+    //   }
+    // },
     /*
       http请求 获取全部电池设备
      */
@@ -157,6 +104,7 @@ export default {
         pageSize: 999999999,
         bindingStatus: ""
       };
+      Indicator.open();
       GetDeviceList(pageObj)
         .then(res => {
           console.log(res);
@@ -175,13 +123,11 @@ export default {
                   this.sendData.param.push(key.deviceId);
                 }
               });
-              this.mapInit(pointerObj, 'http');
+              this.mapData = {
+                data: pointerObj,
+                type: "http"
+              };
               this.sockets(JSON.stringify(this.sendData));
-              // setTimeout(() => {
-              //   if (ws && ws.readyState === 1) {
-              //     ws.send(JSON.stringify(this.sendData));
-              //   }
-              // }, 1000);
             } else {
               onWarn("暂无设备, 请先注册设备");
             }
@@ -197,11 +143,11 @@ export default {
     /*
       websockets 请求
      */
-    sockets(data) {
+    sockets(datas) {
       websockets(ws => {
         ws.onopen = () => {
           console.log("open....");
-          ws.send(data);
+          ws.send(datas);
           wsTimer = setInterval(() => {
             ws.send(JSON.stringify({ api: "heart" }));
           }, 60000);
@@ -217,15 +163,16 @@ export default {
             this.offLine = this.allDevice - this.onLine;
           }
           if (data.code === 2) {
-            if (this.markers.length > 0) {
-              map.remove(this.markers);
-            }
             // code 为 1时 既绑定成功，2时为 收到了数据
             let obj = data.data.split(",");
             obj.forEach(() => {
               pointerObj[obj[0]] = `${obj[2]},${obj[1]}`;
             });
-            this.mapInit(pointerObj);
+            this.mapData = {
+              data: pointerObj,
+              type: "ws"
+            };
+            // this.mapInit(pointerObj);
           }
         };
         ws.onerror = () => {
@@ -242,24 +189,6 @@ export default {
       });
     },
     init() {
-      map = new AMap.Map("container", {
-        resizeEnable: true,
-        zoom: 10
-      });
-      AMap.service("AMap.DistrictSearch", () => {
-        district = new AMap.DistrictSearch({
-          subdistrict: 1,
-          showbiz: false,
-          level: "province"
-        });
-        district.search("中国", (status, result) => {
-          if (status === "complete") {
-            let data = result.districtList[0];
-            this.getCityData(data);
-          }
-        });
-      });
-      Indicator.open();
       this.narmleHttp();
     }
   },
@@ -280,17 +209,17 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
-  .mapWarrp {
-    width: 100%;
-    height: 100%;
-  }
+  // .mapWarrp {
+  //   width: 100%;
+  //   height: 100%;
+  // }
   .Statistics {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     z-index: 20;
-    background: #FFFFFF;
+    background: #ffffff;
     ul {
       display: flex;
       padding: px2rem(10px);
