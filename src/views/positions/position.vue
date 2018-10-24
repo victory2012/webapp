@@ -1,15 +1,18 @@
 <template>
   <div id="outer-box">
     <!-- <div id="positions" class="positioned"></div> -->
-    <google-map :propData="mapData"></google-map>
+    <gaode-map v-if="GETMAPTYPE == 0" :propData="mapData"></gaode-map>
+    <google-map v-if="GETMAPTYPE == 1" :propData="mapData"></google-map>
     <div class="batteryList" :class="[closed? 'closed': '']">
-      <mt-button @click="showAllPionter" type="primary" size="small">查看全部</mt-button>
-      <p @click="toggleList" class="controlBtn">{{toggleTip}}</p>
+      <mt-button @click="showAllPionter" type="primary" size="small">{{$t('positions.lookAll')}}</mt-button>
+      <p @click="toggleList" class="controlBtn">
+        <i :class="{'roted': !closed}"></i>
+      </p>
       <ul>
         <li v-for="(item, index) in pointerArr" :class="[ devicelabel == item.deviceId ? 'selected': '', devicelabel == item.batteryId ? 'selected': '' ]" :key="item.deviceId" @click="checkItem(item, index)">
           <p>{{index + 1}}、{{deviceShow? item.deviceId : item.batteryId}}</p>
           <div class="badges" @click.prevent.stop="HistoryTrack(item.batteryId)">
-            <span class="hisBad">历史轨迹</span>
+            <span class="hisBad">{{$t('positions.track')}}</span>
             <span class="onlines" :class="[item.onlineStatus === 0? 'off': '']">
               <i>{{item.onLine}}</i>
             </span>
@@ -17,8 +20,8 @@
         </li>
       </ul>
       <div class="pages">
-        <div @click="previous" :class="[previousBtn?'':'disable']">上一页</div>
-        <div @click="next" :class="[naxtBtn ? '': 'disable' ]">下一页</div>
+        <div @click="previous" :class="[previousBtn?'':'disable']">{{$t('pageBtn.previous')}}</div>
+        <div @click="next" :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
       </div>
     </div>
   </div>
@@ -54,15 +57,26 @@
       font-size: px2rem(14px);
     }
     .controlBtn {
-      width: 25px;
+      width: 26px;
       position: absolute;
       top: 0;
-      left: -25px;
-      background: #57050b;
+      height: 26px;
+      left: -27px;
+      background-color: #fff;
       padding: 4px;
-      color: #ffffff;
-      font-size: px2rem(12px);
-      text-align: center;
+      border-radius: 2px;
+      border: 1px solid #e5e5e5;
+
+      i {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: url("../../assets/open.png") no-repeat;
+        background-size: 16px;
+        &.roted {
+          transform: rotate(180deg);
+        }
+      }
     }
     ul {
       width: 100%;
@@ -128,8 +142,9 @@ import { mapGetters } from "vuex";
 import { Indicator } from "mint-ui";
 import { websockets, GetDeviceList } from "../../api/index";
 import { timeFormats, trakTimeformat, nowDate } from "../../utils/transition";
-import { onError, onTimeOut } from "../../utils/callback";
+import { onError } from "../../utils/callback";
 import googleMap from "./googleMap";
+import gaodeMap from "./gaodeMap";
 
 let map;
 let infoWindow;
@@ -138,7 +153,8 @@ let batteryIdArr = {};
 let pointerObj = {};
 export default {
   components: {
-    googleMap
+    googleMap,
+    gaodeMap
   },
   data() {
     return {
@@ -156,10 +172,13 @@ export default {
       closed: true,
       deviceShow: false,
       previousBtn: false,
-      toggleTip: "展开",
+      // toggleTip: "展开",
       showList: false,
       pathParams: "" // url 中设备id 参数
     };
+  },
+  computed: {
+    ...mapGetters(["GETMAPTYPE"])
   },
   methods: {
     init() {
@@ -186,7 +205,7 @@ export default {
     // 打开&&关闭列表
     toggleList() {
       this.closed = !this.closed;
-      this.toggleTip = this.closed ? "展开" : "收起";
+      // this.toggleTip = this.closed ? "展开" : "收起";
     },
     // 查看所有点
     showAllPionter() {
@@ -223,10 +242,8 @@ export default {
       }
       GetDeviceList(pageObj).then(res => {
         console.log(res.data);
-        if (res.data.code === 1) {
-          onTimeOut(this.$router);
-        }
-        if (res.data.code === 0) {
+
+        if (res.data && res.data.code === 0) {
           this.pointerArr = [];
           let center = res.data.data;
           let result = center.data;
@@ -242,7 +259,7 @@ export default {
                   key.onlineStatus
                 }`;
                 if (key.onlineStatus === 1) {
-                  key.onLine = "在线";
+                  key.onLine = this.$t("positions.onLine");
                   if (key.batteryId) {
                     batteryIdArr[key.deviceId] = key.batteryId; // 制作电池id 字典。以设备id作为key，电池id作为value。
                   }
@@ -258,7 +275,7 @@ export default {
                   }
                   // pathParams 路由传参。为设备id
                 } else {
-                  key.onLine = "离线";
+                  key.onLine = this.$t("positions.offline");
                 }
                 if (this.pathParams === key.deviceId) {
                   let opts = {
@@ -278,9 +295,6 @@ export default {
           } else {
             onError("暂无设备, 请先注册设备");
           }
-        }
-        if (res.data.code === -1) {
-          onError(res.data.msg);
         }
       });
     },
@@ -362,7 +376,7 @@ export default {
         },0`; // pointerObj 对象。其key为设备id（唯一性），value为字符串、依次顺序为经度、纬度、时间、电池id、在线状态、推送数据标志
         if (key.onlineStatus === 1) {
           // onlineStatus 判断是否在线的标识。1 在线。0 离线；
-          key.onLine = "在线";
+          key.onLine = this.$t("positions.onLine");
           // if (!this.hasGet) {
           //   map.setCenter(new google.maps.LatLng(key.latitude, key.longitude));
           // } else {
@@ -373,7 +387,7 @@ export default {
             batteryIdArr[key.deviceId] = key.batteryId; // 制作电池id 字典。以设备id作为key，电池id作为value。
           }
         } else {
-          key.onLine = "离线";
+          key.onLine = this.$t("positions.offline");
         }
         this.pointerArr.push(key);
       });
@@ -384,86 +398,6 @@ export default {
         type: ""
       };
       // this.GaoDeMap(pointerObj);
-    },
-    GaoDeMap(data, fromWs) {
-      if (this.markers.length > 0) {
-        this.markers.forEach(key => {
-          key.setMap(null);
-        });
-        this.markers = [];
-      }
-      let allmarkerArr = Object.values(data);
-      let markerkeys = Object.keys(data);
-      this.markerTime = [];
-      for (let i = 0; i < allmarkerArr.length; i++) {
-        var lngs = allmarkerArr[i].toString().split(",");
-        if (lngs[0].length > 6 && lngs[1].length > 6 && lngs[4] === "1") {
-          let obj = {};
-          var latLng = new google.maps.LatLng(lngs[0], lngs[1]);
-          var marker = new google.maps.Marker({
-            position: latLng,
-            label: `${i + 1}`,
-            title: `电池编号：${lngs[3]}\n设备编号：${markerkeys[i]}`,
-            map: map
-          });
-          if (fromWs === "fromClick") {
-            marker.setLabel({
-              text: `${ponterIndex}`
-            });
-          }
-          obj.pointer = marker;
-          obj.times = lngs[2];
-          this.markerTime.push(obj);
-          this.markers.push(marker);
-        }
-      }
-      this.markerTime.forEach(key => {
-        key.pointer.addListener("click", e => {
-          var latLngData =
-            e.latLng.lat().toFixed(6) + "," + e.latLng.lng().toFixed(6);
-          this.$.ajax({
-            type: "post",
-            url:
-              "https://maps.googleapis.com/maps/api/geocode/json?latlng=" +
-              latLngData +
-              "&location_type=ROOFTOP&result_type=street_address&key=AIzaSyC8IXpNgfA7uD-Xb0jEqhkEdB7j3gbgOiE",
-            async: true,
-            success: function(data) {
-              let address;
-              if (data.status === "OK") {
-                address = data.results[0].formatted_address;
-              } else {
-                address = "地址获取失败";
-              }
-              var site =
-                "时间：" +
-                key.times +
-                "<br />" +
-                "坐标：" +
-                latLngData +
-                "<br />" +
-                "地址：" +
-                address;
-              this.infowindow = new google.maps.InfoWindow({
-                content: site
-              });
-              this.infowindow.open(map, key.pointer); // 弹出信息提示窗口
-              map.addListener("click", () => {
-                this.infowindow.close();
-              });
-            }
-          });
-        });
-      });
-      // 只有从概览中获取marker点的时候 才需要自适应显示；
-      if (!fromWs) {
-        // 地图自适应显示所有点
-        let bounds = new google.maps.LatLngBounds();
-        for (var i = 0; i < this.markers.length; i++) {
-          bounds.extend(this.markers[i].getPosition());
-        }
-        map.fitBounds(bounds);
-      }
     },
     /*
     * @params deviceId 电池列表 获取的设备id。

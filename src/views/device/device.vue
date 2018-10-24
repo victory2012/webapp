@@ -2,11 +2,11 @@
   <div class="battery">
     <div class="tableHead">
       <ul>
-        <li class="index">序号</li>
-        <li class="device">设备编号</li>
-        <li>绑定电池</li>
-        <li>在线状态</li>
-        <li class="index">详情</li>
+        <li class="index">{{$t('device.serial')}}</li>
+        <li class="device">{{$t('device.deviceCode')}}</li>
+        <li>{{$t('device.bindStatus')}}</li>
+        <li>{{$t('device.runStatus')}}</li>
+        <li class="index">{{$t('device.detail')}}</li>
       </ul>
     </div>
     <div class="tableBody" ref="wrapper" :style="{ height: wrapperHeight + 'px' }">
@@ -17,7 +17,7 @@
             <div class="device">{{key.deviceId}}</div>
             <div>{{key.bindingName}}</div>
             <div>{{key.online}}</div>
-            <div class="blueColor index" @click="toLookDetail(key)">详情</div>
+            <div class="blueColor index" @click="toLookDetail(key)">{{$t('device.detail')}}</div>
           </li>
         </ul>
         <div slot="bottom" class="mint-loadmore-bottom">
@@ -31,45 +31,45 @@
     <mt-popup v-model="showIt" popup-transition="popup-fade">
       <div class="table">
         <div class="header">
-          设备详情
+          {{$t('device.deviceDetail')}}
         </div>
         <div class="info">
           <ul>
             <li>
-              <div>设备编号</div>
+              <div>{{$t('device.deviceCode')}}</div>
               <div class="cons">{{detailObj.deviceId}}</div>
             </li>
             <li>
-              <div>企业名称</div>
+              <div>{{$t('device.manufacturerName')}}</div>
               <div class="cons">{{detailObj.manufacturerName}}</div>
             </li>
             <li>
-              <div>创建时间</div>
+              <div>{{$t('device.createTime')}}</div>
               <div class="cons">{{detailObj.createTime}}</div>
             </li>
             <li>
-              <div>电池绑定</div>
+              <div>{{$t('device.bindStatus')}}</div>
               <div class="cons">{{detailObj.bindingName}}</div>
             </li>
             <li>
-              <div>电池编号</div>
+              <div>{{$t('device.batteryCode')}}</div>
               <div class="cons">{{detailObj.batteryId}}</div>
             </li>
             <li>
-              <div>在线状态</div>
+              <div>{{$t('device.onlineStatus')}}</div>
               <div class="cons">{{detailObj.online}}</div>
             </li>
             <li>
-              <div>监测设备</div>
+              <div>{{$t('device.device')}}</div>
               <div class="cons">
-                <mt-button @click="LookRun" size="small" type="primary">查看位置</mt-button>
+                <mt-button @click="LookRun" size="small" type="primary">{{$t('device.location')}}</mt-button>
               </div>
             </li>
           </ul>
         </div>
       </div>
     </mt-popup>
-    <div class="pb" @click="ToaddDevice">添加设备</div>
+    <div class="pb" @click="ToaddDevice">{{$t('device.addDevice')}}</div>
     <!-- <mt-palette-button content="添加设备" @expand="main_log('expand')" @expanded="main_log('expanded')"
       class="pb" :radius="80" ref="target_1" mainButtonStyle="color:#fff;background-color:#26a2ff;font-size: 12px;">
       <div class="my-icon-button">1</div>
@@ -86,7 +86,7 @@ import {
   enterpriseCustomer
 } from "../../api/index";
 import { getStorage } from "../../utils/transition";
-import { onTimeOut, onError } from "../../utils/callback";
+import { onError } from "../../utils/callback";
 
 export default {
   components: {
@@ -135,9 +135,7 @@ export default {
         Indicator.close();
         console.log(result);
         this.bottomStatus = "";
-        if (result.code === 1) {
-          onTimeOut(this.$router);
-        }
+
         if (result.code === 0) {
           if (result.data.data) {
             let tableObj = result.data.data;
@@ -149,11 +147,14 @@ export default {
             tableObj.forEach(key => {
               // let resultTime = key.createTime;
               if (key.bindingStatus === 0) {
-                key.bindingName = "未绑定";
+                key.bindingName = this.$t("device.nobind");
               } else {
-                key.bindingName = "已绑定";
+                key.bindingName = this.$t("device.hasbind");
               }
-              key.online = key.onlineStatus === 0 ? "离线" : "在线";
+              key.online =
+                key.onlineStatus === 0
+                  ? this.$t("device.offline")
+                  : this.$t("device.online");
               // key.createTime = timeFormats(resultTime);
               // key.createTimea = timeFormats(resultTime);
               key.status = key.status === 0 ? true : false;
@@ -169,7 +170,7 @@ export default {
     getAddData() {
       // 生产企业列表
       enterpriseList().then(res => {
-        if (res.data.code === 0) {
+        if (res.data && res.data.code === 0) {
           let result = res.data.data;
           result.forEach(key => {
             this.manufacturerOptions.push(key);
@@ -179,7 +180,7 @@ export default {
       enterpriseCustomer()
         // 客户企业列表
         .then(res => {
-          if (res.data.code === 0) {
+          if (res.data && res.data.code === 0) {
             let data = res.data.data;
             data.forEach(key => {
               this.customerOptions.push(key);
@@ -209,7 +210,7 @@ export default {
           });
         }
       } else {
-        MessageBox('提示', '此设备当前处于离线状态，不能查看当前位置');
+        MessageBox("提示", "此设备当前处于离线状态，不能查看当前位置");
       }
     },
     ToaddDevice() {

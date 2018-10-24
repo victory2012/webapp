@@ -2,11 +2,11 @@
   <div class="battery">
     <div class="tableHead">
       <ul>
-        <li class="index">序号</li>
-        <li>用户名</li>
-        <li>账户身份</li>
-        <li>企业身份</li>
-        <li class="index">详情</li>
+        <li class="index">{{$t('useMsg.serial')}}</li>
+        <li>{{$t('useMsg.name')}}</li>
+        <li>{{$t('useMsg.accountIdentity')}}</li>
+        <li>{{$t('useMsg.companyIdentity')}}</li>
+        <li class="index">{{$t('useMsg.detail')}}</li>
       </ul>
     </div>
     <div class="tableBody" ref="wrapper" :style="{ height: wrapperHeight + 'px' }">
@@ -17,7 +17,7 @@
             <div>{{key.userName}}</div>
             <div>{{key.accountRole}}</div>
             <div>{{key.enterpriseRole}}</div>
-            <div class="blueColor index" @click="toLookDetail(key)">详情</div>
+            <div class="blueColor index" @click="toLookDetail(key)">{{$t('useMsg.detail')}}</div>
           </li>
         </ul>
         <div slot="bottom" class="mint-loadmore-bottom">
@@ -31,32 +31,32 @@
     <mt-popup v-model="showIt" popup-transition="popup-fade">
       <div class="table">
         <div class="header">
-          用户详情
+          {{$t('useMsg.userDetail')}}
         </div>
         <div class="info">
           <ul>
             <li>
-              <div>用户名</div>
+              <div>{{$t('useMsg.userName')}}</div>
               <div class="cons">{{detailObj.userName}}</div>
             </li>
             <li>
-              <div>账户身份</div>
+              <div>{{$t('useMsg.accountRole')}}</div>
               <div class="cons">{{detailObj.accountRole}}</div>
             </li>
             <li>
-              <div>企业身份</div>
+              <div>{{$t('useMsg.enterpriseRole')}}</div>
               <div class="cons">{{detailObj.enterpriseRole}}</div>
             </li>
             <li>
-              <div>企业名称</div>
+              <div>{{$t('useMsg.enterpriseName')}}</div>
               <div class="cons">{{detailObj.enterpriseName}}</div>
             </li>
             <li>
-              <div>手机号</div>
+              <div>{{$t('useMsg.phone')}}</div>
               <div class="cons">{{detailObj.phoneNumber}}</div>
             </li>
             <li>
-              <div>邮箱</div>
+              <div>{{$t('useMsg.email')}}</div>
               <div class="cons">{{detailObj.email}}</div>
             </li>
           </ul>
@@ -68,8 +68,7 @@
 <script>
 import { Loadmore, Spinner, Popup } from "mint-ui";
 import { manufacturerList } from "../../api/index";
-import { userRole, companyRole } from "../../utils/transition";
-import { onTimeOut, onError } from "../../utils/callback";
+import { onError } from "../../utils/callback";
 
 export default {
   components: {
@@ -112,12 +111,7 @@ export default {
           console.log(res);
           this.bottomStatus = "";
           let result = res.data;
-          if (result.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (result.code === -1) {
-            onError(result.msg);
-          }
+
           if (result.code === 0) {
             let tableObj = result.data.data;
             if (tableObj.length > 0) {
@@ -127,11 +121,11 @@ export default {
                 this.allLoaded = true;
               }
               tableObj.forEach(key => {
-                key.accountRole = userRole(key.userRole);
+                key.accountRole = this.userRole(key.userRole);
                 key.status = key.status === 0 ? false : true;
                 key.email = key.email || "无";
                 key.phoneNumber = key.phoneNumber || "无";
-                key.enterpriseRole = companyRole(key.enterpriseRole);
+                key.enterpriseRole = this.companyRole(key.enterpriseRole);
                 this.tableData.push(key);
               });
             } else {
@@ -142,6 +136,34 @@ export default {
         .catch(() => {
           onError("服务器请求超时，请稍后重试");
         });
+    },
+    companyRole(str) {
+      switch (str) {
+        case "platform":
+          return `${this.$t("platform")}`;
+        case "manufacturer":
+          return `${this.$t("manufacturer")}`;
+        case "customer":
+          return `${this.$t("customer")}`;
+        default:
+          return "";
+      }
+    },
+    userRole(str) {
+      switch (str) {
+        case "plat_super_admin":
+          return this.$t("useMsg.superAdministrator");
+        case "super_admin":
+          return this.$t("useMsg.superAdministrator");
+        case "admin":
+          return this.$t("useMsg.administrator");
+        case "customer_super_admin":
+          return this.$t("useMsg.administrator");
+        case "manufacturer_super_admin":
+          return this.$t("useMsg.administrator");
+        default:
+          return "";
+      }
     },
     toLookDetail(key) {
       console.log(key);

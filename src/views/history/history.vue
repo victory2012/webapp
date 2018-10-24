@@ -2,14 +2,14 @@
   <div class="all">
     <!-- <div class="mask"></div> -->
     <div class="control">
-      <input :value="starts" type="text" @click="openStartPicker" readonly placeholder="开始时间">~
-      <input :value="endtime" type="text" @click="openEndPicker" readonly placeholder="结束时间">
-      <mt-datetime-picker ref="starts" type="datetime" @confirm="StarttimeConfirm" v-model="startpickerValue">
+      <input :value="starts" type="text" @click="openStartPicker" readonly>~
+      <input :value="endtime" type="text" @click="openEndPicker" readonly>
+      <mt-datetime-picker ref="starts" :cancelText="$t('timeBtn.cancle')" :confirmText="$t('timeBtn.sure')" type="datetime" @confirm="StarttimeConfirm" v-model="startpickerValue">
       </mt-datetime-picker>
-      <mt-datetime-picker ref="endtime" type="datetime" @confirm="endTimeConfirm" v-model="endpickerValue">
+      <mt-datetime-picker ref="endtime" :cancelText="$t('timeBtn.cancle')" :confirmText="$t('timeBtn.sure')" type="datetime" @confirm="endTimeConfirm" v-model="endpickerValue">
       </mt-datetime-picker>
-      <mt-button v-show="trajectory" size="small" type="danger" @click="heatmap">活动热区</mt-button>
-      <mt-button v-show="!trajectory" size="small" type="primary" @click="track">轨迹回放</mt-button>
+      <mt-button v-show="trajectory" size="small" type="danger" @click="heatmap">{{$t('history.heatActive')}}</mt-button>
+      <mt-button v-show="!trajectory" size="small" type="primary" @click="track">{{$t('history.TrackReplay')}}</mt-button>
     </div>
     <div class="btns" v-show="trajectory">
       <div class="btnInfo">
@@ -34,14 +34,16 @@
 
     <div id="mapcontainer" class="mapcontainer"></div>
     <div class="batteryList" :class="[closed? 'closed': '']">
-      <p @click="toggleList" class="controlBtn">{{toggleTip}}</p>
+      <p @click="toggleList" class="controlBtn">
+        <i :class="{'roted': !closed}"></i>
+      </p>
       <ul>
         <li v-for="(item, index) in pointerArr" :class="[ devicelabel == item.deviceId ? 'selected': '', devicelabel == item.batteryId ? 'selected': '' ]" :key="item.deviceId" @click="checkItem(item, index)">
           <p>{{index+1}}、{{item.batteryId}}</p>
         </li>
         <li class="pages">
-          <div @click="previous" :class="[previousBtn?'':'disable']">上一页</div>
-          <div @click="next" :class="[naxtBtn ? '': 'disable' ]">下一页</div>
+          <div @click="previous" :class="[previousBtn?'':'disable']">{{$t('pageBtn.previous')}}</div>
+          <div @click="next" :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
         </li>
       </ul>
     </div>
@@ -91,7 +93,7 @@ export default {
       chooseTime: [],
       pointerArr: [],
       closed: true,
-      toggleTip: "展开",
+      toggleTip: this.$t("toggleTip.open"),
       gridData: [],
       markerArr: [],
       alldistance: 0,
@@ -206,7 +208,9 @@ export default {
     // 打开&&关闭列表
     toggleList() {
       this.closed = !this.closed;
-      this.toggleTip = this.closed ? "展开" : "收起";
+      this.toggleTip = this.closed
+        ? this.$t("toggleTip.open")
+        : this.$t("toggleTip.close");
     },
     speedChange() {
       console.log("change", this.timeSeconds);
@@ -285,49 +289,36 @@ export default {
     /* 获取数据 */
     getData(params) {
       Indicator.open();
-      GetTrajectory(params)
-        .then(res => {
-          Indicator.close();
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (res.data.code === 0) {
-            let result = res.data.data;
-            // console.log(result);
-            this.lineArr = [];
-            if (result.length > 0) {
-              this.gridData = [];
-              for (let i = 0; i < result.length; i++) {
-                var key = result[i];
-                var obj = {};
-                obj.pushTime = key.pushTime;
-                obj.ponter = new google.maps.LatLng(
-                  key.latitude,
-                  key.longitude
-                );
-                this.lineArr.push(obj);
-                this.gridData.push(
-                  new google.maps.LatLng(key.latitude, key.longitude)
-                );
-              }
-              map.setCenter(this.gridData[0]);
-              if (this.active) {
-                this.heatmap();
-              } else {
-                this.track();
-              }
-            } else {
-              onWarn("此设备当前时间段内，暂无数据");
+      GetTrajectory(params).then(res => {
+        Indicator.close();
+
+        if (res.data && res.data.code === 0) {
+          let result = res.data.data;
+          // console.log(result);
+          this.lineArr = [];
+          if (result.length > 0) {
+            this.gridData = [];
+            for (let i = 0; i < result.length; i++) {
+              var key = result[i];
+              var obj = {};
+              obj.pushTime = key.pushTime;
+              obj.ponter = new google.maps.LatLng(key.latitude, key.longitude);
+              this.lineArr.push(obj);
+              this.gridData.push(
+                new google.maps.LatLng(key.latitude, key.longitude)
+              );
             }
+            map.setCenter(this.gridData[0]);
+            if (this.active) {
+              this.heatmap();
+            } else {
+              this.track();
+            }
+          } else {
+            onWarn("此设备当前时间段内，暂无数据");
           }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch(err => {
-          console.log(err);
-          onError("服务器请求超时，请稍后重试");
-        });
+        }
+      });
     },
     heatmap() {
       this.trajectory = false;
@@ -366,52 +357,41 @@ export default {
         pageNum: this.pageNum,
         pageSize: 10
       };
-      GetDeviceList(pageObj)
-        .then(res => {
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (res.data.code === 0) {
-            let result = res.data.data.data;
-            this.total = res.data.data.total;
-            this.batteryId = this.$route.query.batteryId;
-            this.pointerArr = [];
-            if (result.length > 0) {
-              result.forEach(key => {
-                if (key.batteryId) {
-                  if (this.batteryId && this.batteryId === key.batteryId) {
-                    this.queryDevice = key.deviceId; // 根据路由参数中的电池id 获取对应的设备id；
-                  }
-                  this.pointerArr.push(key);
+      GetDeviceList(pageObj).then(res => {
+        if (res.data && res.data.code === 0) {
+          let result = res.data.data.data;
+          this.total = res.data.data.total;
+          this.batteryId = this.$route.query.batteryId;
+          this.pointerArr = [];
+          if (result.length > 0) {
+            result.forEach(key => {
+              if (key.batteryId) {
+                if (this.batteryId && this.batteryId === key.batteryId) {
+                  this.queryDevice = key.deviceId; // 根据路由参数中的电池id 获取对应的设备id；
                 }
-              });
-              let params = {
-                pushDateStart: timeFormatSort(this.starts),
-                pushDateEnd: timeFormatSort(this.endtime)
-              };
-              if (this.batteryId && this.pageNum === 1) {
-                this.devicelabel = this.batteryId;
-                params.batteryId = this.batteryId;
-                this.getData(params);
-              } else {
-                this.devicelabel = result[0].batteryId;
-                params.batteryId = result[0].batteryId;
-                this.queryDevice = result[0].deviceId;
-                this.getData(params);
+                this.pointerArr.push(key);
               }
-              // this.getTimeList(this.queryDevice);
+            });
+            let params = {
+              pushDateStart: timeFormatSort(this.starts),
+              pushDateEnd: timeFormatSort(this.endtime)
+            };
+            if (this.batteryId && this.pageNum === 1) {
+              this.devicelabel = this.batteryId;
+              params.batteryId = this.batteryId;
+              this.getData(params);
             } else {
-              // onWarn("暂无设备, 请先注册设备");
+              this.devicelabel = result[0].batteryId;
+              params.batteryId = result[0].batteryId;
+              this.queryDevice = result[0].deviceId;
+              this.getData(params);
             }
+            // this.getTimeList(this.queryDevice);
+          } else {
+            // onWarn("暂无设备, 请先注册设备");
           }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch(err => {
-          console.log(err);
-          onError("服务器请求超时，请稍后重试");
-        });
+        }
+      });
     },
     startMove() {
       this.actived = true;
@@ -533,7 +513,7 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
-  // overflow: hidden;
+  overflow: hidden;
   .mask {
     position: absolute;
     top: $baseHeader;
@@ -552,8 +532,9 @@ export default {
     left: 0;
     top: 0px;
     width: 100%;
-    height: 51px;
-    line-height: 51px;
+    height: 40px;
+    line-height: 40px;
+    padding: 0 5px;
     font-size: px2rem(14px);
     border-bottom: 1px solid #f0f0f0;
     z-index: 10;
@@ -615,15 +596,26 @@ export default {
       right: px2rem(-150px);
     }
     .controlBtn {
-      width: 25px;
+      width: 26px;
       position: absolute;
       top: 0;
-      left: -25px;
-      background: #57050b;
+      height: 26px;
+      left: -27px;
+      background-color: #fff;
       padding: 4px;
-      color: #ffffff;
-      font-size: px2rem(12px);
-      text-align: center;
+      border-radius: 2px;
+      border: 1px solid #e5e5e5;
+
+      i {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: url("../../assets/open.png") no-repeat;
+        background-size: 16px;
+        &.roted {
+          transform: rotate(180deg);
+        }
+      }
     }
     ul {
       width: 100%;

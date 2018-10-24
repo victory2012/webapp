@@ -1,25 +1,20 @@
-import Axios from "axios";
+import http from "./http";
 
-const BaseUrl = "http://47.98.232.46:8181";
-// let BaseUrl = "http://192.168.1.122:8181";
+
+// let BaseUrl = "http://192.168.1.135:8181";
 const socketUrl = 'ws://47.98.232.46:8081/gps';
-Axios.defaults.withCredentials = true; // 让ajax携带cookie
-
-let instance = Axios.create({
-  headers: {
-    "Content-Type": "application/json"
-  },
-  baseURL: BaseUrl,
-  timeout: 100000,
-  withCredentials: true
-});
+// Axios.defaults.withCredentials = true; // 让ajax携带cookie
 
 /*
  * 获取电池列表数据
  * params入参 包含pageSize pageNum 两个字段
  */
 export function GetList(params) {
-  return instance.post('/battery/list', params);
+  return http.post('/battery/list', params);
+}
+
+export function GetCount() {
+  return http.post('/device/count');
 }
 
 /*
@@ -29,7 +24,7 @@ export function GetList(params) {
  * params.deviceId
  */
 export function addBlacklist(params) {
-  return instance.post(`/device/${params.manufacturer}/${params.customer}/${params.deviceId}/add_blacklist`);
+  return http.post(`/device/${params.manufacturer}/${params.customer}/${params.deviceId}/add_blacklist`);
 }
 
 /*
@@ -39,7 +34,7 @@ export function addBlacklist(params) {
  * params.batteryId
  */
 export function deleteBattery(params) {
-  return instance.post(`/battery/${params.manufacturer}/${params.customer}/${params.batteryId}/delete`);
+  return http.post(`/battery/${params.manufacturer}/${params.customer}/${params.batteryId}/delete`);
 }
 
 /*
@@ -49,7 +44,7 @@ export function deleteBattery(params) {
  * params.deviceId
  */
 export function addBattery(params) {
-  return instance.post(`/battery/add`, params);
+  return http.post(`/battery/add`, params);
 }
 /*
  * 删除设备
@@ -58,7 +53,7 @@ export function addBattery(params) {
  * params.deviceId
  */
 export function deleteDevice(params) {
-  return instance.post(`/device/${params.manufacturer}/${params.customer}/${params.deviceId}/delete`);
+  return http.post(`/device/${params.manufacturer}/${params.customer}/${params.deviceId}/delete`);
 }
 
 /*
@@ -66,21 +61,21 @@ export function deleteDevice(params) {
  * params
  */
 export function getAdminInfo(params) {
-  return instance.post('/login/submit', params);
+  return http.post('/login/submit', params);
 }
 
 /*
  * 退出登录
  */
 export function doLogOut() {
-  return instance.post('/login/logout');
+  return http.post('/login/logout');
 }
 
 /*
  * 获取gps概览
  */
 export function GetDeviceList(params) {
-  return instance.post('/device/gps/list', params);
+  return http.post('/device/gps/list', params);
 }
 
 /*
@@ -88,7 +83,7 @@ export function GetDeviceList(params) {
  * params： gpsList 坐标点
  */
 export function addFence(params) {
-  return instance.post('/fence/add', params);
+  return http.post('/fence/add', params);
 }
 
 /*
@@ -96,14 +91,14 @@ export function addFence(params) {
  * params：围栏id
  */
 export function delFence(fenceId) {
-  return instance.post(`/fence/${fenceId}/delete`);
+  return http.post(`/fence/${fenceId}/delete`);
 }
 
 /*
  * 获取电子围栏
  */
 export function getFence() {
-  return instance.post('/fence/list');
+  return http.post('/fence/list');
 }
 
 /*
@@ -118,7 +113,7 @@ export function websockets(callBack) {
  * 获取个人信息
  */
 export function getUserInfo() {
-  return instance.post('/user/info');
+  return http.post('/user/info');
 }
 
 /*
@@ -126,7 +121,7 @@ export function getUserInfo() {
  * params入参
  */
 export function changeUserInfo(params) {
-  return instance.post('/user/info/modify', params);
+  return http.post('/user/info/modify', params);
 }
 
 /*
@@ -134,105 +129,105 @@ export function changeUserInfo(params) {
  * params入参 包含password 字段
  */
 export function changePassword(params) {
-  return instance.post('/user/change_password', params);
+  return http.post('/user/change_password', params);
 }
 /*
  * 告警数据
  * @params入参 分页字段
  */
 export function alarmList(params) {
-  return instance.post('/alarm/list', params);
+  return http.post('/alarm/list', params);
 }
 
 /*
  * 获取设备gps 实时位置
  */
 export function realTimeLocation(deviceId) {
-  return instance.post(`/device/${deviceId}/gps/get`);
+  return http.post(`/device/${deviceId}/gps/get`);
 }
 
 /*
  * 获取所有设备列表
  */
 export function deviceList(params) {
-  return instance.post(`/device/list`, params);
+  return http.post(`/device/list`, params);
 }
 
 /*
  * 获取所有设备列表
  */
 export function deviceListOnly() {
-  return instance.post(`/device/deviceId/list`);
+  return http.post(`/device/deviceId/list`);
 }
 
 /*
  * 获取所有设备列表
  */
 export function createDeviceList(params) {
-  return instance.post(`/device/create`, params);
+  return http.post(`/device/create`, params);
 }
 
 /*
  * 获取历史轨迹
  */
 export function GetTrajectory(params) {
-  return instance.post(`/device/gps/history/list`, params);
+  return http.post(`/device/gps/history/list`, params);
 }
 
 /*
  * 获取生产企业用户列表
  */
 export function manufacturerList(params) {
-  return instance.post(`/user/list`, params);
+  return http.post(`/user/list`, params);
 }
 
 /*
  * 添加生产企业超级管理员
  */
 export function addManufacturer(params) {
-  return instance.post('/user/manufacturer/add', params);
+  return http.post('/user/manufacturer/add', params);
 }
 
 /*
  * 添加生产企业普通管理员
  */
 export function addManufacturerAdmin(params) {
-  return instance.post('/user/manufacturer_admin/add', params);
+  return http.post('/user/manufacturer_admin/add', params);
 }
 
 /*
  * 添加客户超级管理员
  */
 export function addCustomer(params) {
-  return instance.post('/user/customer/add', params);
+  return http.post('/user/customer/add', params);
 }
 
 /*
  * 添加客户普通管理员
  */
 export function addCustomerAdmin(params) {
-  return instance.post(`/user/customer_admin/add`, params);
+  return http.post(`/user/customer_admin/add`, params);
 }
 
 /*
  * 获取生产企业列表
  */
 export function enterpriseList() {
-  return instance.post('/enterprise/manufacturer/list');
+  return http.post('/enterprise/manufacturer/list');
 }
 
 /*
  * 获取客户企业列表
  */
 export function enterpriseCustomer() {
-  return instance.post('/enterprise/manufacturer_customer/list');
+  return http.post('/enterprise/manufacturer_customer/list');
 }
 
 /*
  * 获取客户企业列表
  */
 export function singleDeviceId(deviceId) {
-  return instance.post(`/device/${deviceId}/gps/get`);
+  return http.post(`/device/${deviceId}/gps/get`);
 }
 
 /*

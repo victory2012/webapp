@@ -13,7 +13,7 @@
 /* eslint-disable */
 import AMap from "AMap";
 import { getFence, websockets, singleDeviceId } from "../../api/index";
-import { onTimeOut, onWarn, onError } from "../../utils/callback";
+import { onWarn, onError } from "../../utils/callback";
 
 let map;
 let grid;
@@ -86,10 +86,7 @@ export default {
     },
     getData() {
       getFence().then(res => {
-        if (res.data.code === 1) {
-          onTimeOut(this.$router);
-        }
-        if (res.data.code === 0) {
+        if (res.data && res.data.code === 0) {
           if (res.data.data.length > 0) {
             let result = res.data.data;
             result.forEach(key => {
@@ -99,9 +96,6 @@ export default {
               this.hasFence(gpsList, id);
             });
           }
-        }
-        if (res.data.code === -1) {
-          onError(res.data.msg);
         }
       });
     },
@@ -154,32 +148,22 @@ export default {
     },
     localPosition() {
       let NowDeviceId = this.$route.query.deviceId;
-      singleDeviceId(NowDeviceId)
-        .then(res => {
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
+      singleDeviceId(NowDeviceId).then(res => {
+        if (res.data && res.data.code === 0) {
+          let result = res.data.data;
+          console.log(result);
+          if (result) {
+            pointerObj[result.deviceId] = `${result.longitude},${
+              result.latitude
+            }`;
+            this.sendData.param.push(result.deviceId);
+            this.mapInit(pointerObj);
+            this.sockets(JSON.stringify(this.sendData));
+          } else {
+            onWarn("暂无设备, 请先注册设备");
           }
-          if (res.data.code === 0) {
-            let result = res.data.data;
-            console.log(result);
-            if (result) {
-              pointerObj[result.deviceId] = `${result.longitude},${
-                result.latitude
-              }`;
-              this.sendData.param.push(result.deviceId);
-              this.mapInit(pointerObj);
-              this.sockets(JSON.stringify(this.sendData));
-            } else {
-              onWarn("暂无设备, 请先注册设备");
-            }
-          }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch(() => {
-          onError("服务器请求超时，请稍后重试");
-        });
+        }
+      });
     },
     sockets(sendData) {
       websockets(ws => {
@@ -246,8 +230,8 @@ export default {
     width: px2rem(35px);
     height: px2rem(35px);
     padding: px2rem(5px);
-    bottom: px2rem(30px);;
-    left: px2rem(20px);;
+    bottom: px2rem(30px);
+    left: px2rem(20px);
     z-index: 99;
     background: #ffffff;
     border-radius: 3px;

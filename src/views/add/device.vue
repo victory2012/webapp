@@ -1,30 +1,30 @@
 <template>
   <div>
-    <mt-header title="添加设备">
+    <mt-header :title="$t('addDevice.title')">
       <router-link to="/device" slot="left">
-        <mt-button icon="back">返回</mt-button>
+        <mt-button icon="back">{{$t('addDevice.back')}}</mt-button>
       </router-link>
     </mt-header>
     <div class="forms">
       <ul>
         <li>
-          <div class="title">设备编号</div>
+          <div class="title">{{$t('addDevice.deviceCode')}}</div>
           <div>
             <input v-model="deviceId" type="text">
           </div>
         </li>
         <li>
-          <div class="title">生产商id</div>
+          <div class="title">{{$t('addDevice.manufacturer')}}</div>
           <div @click="chooseMani">
             {{manufacturer}}
           </div>
         </li>
         <li>
-          <div class="title">客户id</div>
+          <div class="title">{{$t('addDevice.Customer')}}</div>
           <div @click="chooseCustomr">{{customerValu}}</div>
         </li>
       </ul>
-      <button @click="creatDevice" class="creatBtn">创建设备</button>
+      <button @click="creatDevice" class="creatBtn">{{$t('addDevice.createBtn')}}</button>
     </div>
     <mt-popup v-model="popupVisible" class="popup" position="bottom">
       <mt-picker :slots="manu" @change="onValuesChange"></mt-picker>
@@ -41,7 +41,7 @@ import {
   enterpriseList,
   enterpriseCustomer
 } from "../../api/index";
-import { onTimeOut, onError, onSuccess } from "../../utils/callback";
+import { onError, onSuccess } from "../../utils/callback";
 
 export default {
   components: {
@@ -92,7 +92,7 @@ export default {
     getAddData() {
       // 生产企业列表
       enterpriseList().then(res => {
-        if (res.data.code === 0) {
+        if (res.data && res.data.code === 0) {
           let result = res.data.data;
           this.manu[0].values = [];
           if (result.length > 0) {
@@ -101,14 +101,14 @@ export default {
               this.manufacturerOptions[key.name] = key;
             });
           } else {
-            this.manu[0].values.push("暂无数据");
+            this.manu[0].values.push(`${this.$t("addDevice.noData")}`);
           }
         }
       });
       enterpriseCustomer()
         // 客户企业列表
         .then(res => {
-          if (res.data.code === 0) {
+          if (res.data && res.data.code === 0) {
             let data = res.data.data;
             this.customer[0].values = [];
             if (data.length > 0) {
@@ -117,7 +117,7 @@ export default {
                 this.customerOptions[key.name] = key;
               });
             } else {
-              this.customer[0].values.push("暂无数据");
+              this.customer[0].values.push(`${this.$t("addDevice.noData")}`);
             }
           }
         });
@@ -125,7 +125,10 @@ export default {
     creatDevice() {
       let manufacturer = this.manufacturerOptions[this.manufacturer];
       let keys = Object.keys(this.customerOptions);
-      let customer = keys.length > 0 ? this.customerOptions[this.customerValu] : { id: "", name: "" };
+      let customer =
+        keys.length > 0
+          ? this.customerOptions[this.customerValu]
+          : { id: "", name: "" };
       let params = {
         manufacturerId: manufacturer.id || "",
         customerId: customer.id || "",
@@ -136,24 +139,16 @@ export default {
       console.log(customer);
       console.log(params);
       if (!this.deviceId) {
-        onError("请填写设备编号");
+        onError(`${this.$t("addDevice.errorTip")}`);
         return;
       }
-      createDeviceList(params)
-        .then(res => {
-          console.log(res);
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (res.data.code === 0) {
-            onSuccess("创建成功");
-            this.deviceId = '';
-          }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch();
+      createDeviceList(params).then(res => {
+        console.log(res);
+        if (res.data && res.data.code === 0) {
+          onSuccess(`${this.$t("addDevice.success")}`);
+          this.deviceId = "";
+        }
+      });
     }
   }
 };
@@ -193,7 +188,7 @@ export default {
         text-indent: 1em;
       }
       &.title {
-        flex: 0 0 80px;
+        flex: 0 0 120px;
       }
     }
   }

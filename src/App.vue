@@ -7,7 +7,7 @@
 </template>
 <style lang="scss">
 // @import './common/style/index.scss';
-*{
+* {
   padding: 0;
   margin: 0;
   list-style: none;
@@ -17,13 +17,21 @@
   font-weight: normal;
   font-family: "Microsoft Yahei";
   box-sizing: border-box;
-  -webkit-tap-highlight-color:transparent;
+  -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   // -webkit-overflow-scrolling:touch;
   outline: none;
 }
-html, body, #app{
+html,
+body,
+#app {
   height: 100%;
   width: 100%;
+}
+.gmnoprint {
+  display: none;
+}
+.gm-style > button {
+  display: none;
 }
 </style>

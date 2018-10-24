@@ -5,27 +5,27 @@
     </div>
     <section class="form_contianer">
       <div class="manage_tip">
-        <p>{{$t('projectName')}}</p>
+        <p>{{$t('loginMsg.projectName')}}</p>
       </div>
       <div class="form">
         <div class="account">
-          <mt-field type="text" :label="$t('accountPlace')" :placeholder="$t('loginMsg.userNameMsg')" v-model="loginForm.userName" :state="accountTip"></mt-field>
+          <mt-field type="text" :label="$t('loginMsg.accountPlace')" :placeholder="$t('loginMsg.userNameMsg')" v-model="loginForm.userName" :state="accountTip"></mt-field>
         </div>
         <div class="pwd">
-          <mt-field type="password" :label="$t('passwordPlace')" :placeholder="$t('loginMsg.password')" v-model="loginForm.password" :state="pwdTip"></mt-field>
+          <mt-field type="password" :label="$t('loginMsg.passwordPlace')" :placeholder="$t('loginMsg.password')" v-model="loginForm.password" :state="pwdTip"></mt-field>
         </div>
         <div class="rem">
           <div>
             <input id="account" class="magic-checkbox" type="checkbox" v-model="accountVal" />
-            <label for="account" class="my_protocol">{{$t('RMaccount')}}</label>
+            <label for="account" class="my_protocol">{{$t('loginMsg.RMaccount')}}</label>
           </div>
           <div>
             <input id="pwd" class="magic-checkbox" type="checkbox" v-model="passwordVal" />
-            <label for="pwd" class="my_protocol">{{$t('RMpassword')}}</label>
+            <label for="pwd" class="my_protocol">{{$t('loginMsg.RMpassword')}}</label>
           </div>
         </div>
         <div class="buttom">
-          <mt-button class="btns" type="primary" size='small' @click="submitForm">{{$t('login')}}</mt-button>
+          <mt-button class="btns" type="primary" size='small' @click="submitForm">{{$t('loginMsg.loginBtn')}}</mt-button>
           <mt-button class="btns" type="primary" size='small' @click="changLocalLang">{{localLanguge}}</mt-button>
         </div>
       </div>
@@ -74,10 +74,12 @@ export default {
       }
       if (currentLang === "zh-CN") {
         this.localLanguge = "中文";
-        localStorage.setItem("locale", "CN");
+        setStorage("locale", "CN");
+        this.$i18n.locale = "CN";
       } else {
         this.localLanguge = "English";
-        localStorage.setItem("locale", "EN");
+        setStorage("locale", "EN");
+        this.$i18n.locale = "EN";
       }
     }
   },
@@ -86,22 +88,24 @@ export default {
       if (this.langs === "en") {
         this.$i18n.locale = "CN";
         this.langs = "cn";
+        setStorage("locale", "CN");
         this.localLanguge = "中文";
       } else {
         this.langs = "en";
         this.localLanguge = "English";
         this.$i18n.locale = "EN";
+        setStorage("locale", "EN");
       }
     },
     submitForm() {
       if (!this.loginForm.userName) {
         this.accountTip = "error";
-        onError("请输入账户");
+        onError(`${this.$t("loginMsg.errorMsg.account")}`);
         return;
       }
       if (!this.loginForm.password) {
         this.pwdTip = "error";
-        onError("请输入密码");
+        onError(`${this.$t("loginMsg.errorMsg.password")}`);
         return;
       }
       this.accountTip = "success";
@@ -109,34 +113,31 @@ export default {
       this.loginFun();
     },
     loginFun() {
-      getAdminInfo(this.loginForm)
-        .then(res => {
-          console.log(res);
-          if (res.data.code === 0) {
-            if (typeof localStorage === "object") {
-              try {
-                let Data = JSON.stringify(res.data.data);
-                setStorage("loginData", Data);
-                if (this.accountVal) {
-                  setStorage("account", this.loginForm.userName);
-                }
-                if (this.passwordVal) {
-                  setStorage("password", this.loginForm.password);
-                }
-                this.$store.commit("LogInDate", Data);
-                this.$router.push("/home");
-              } catch (error) {
-                MessageBox("提示", "请关闭无痕模式后，在访问");
+      getAdminInfo(this.loginForm).then(res => {
+        console.log(res);
+        if (res.data && res.data.code === 0) {
+          if (typeof localStorage === "object") {
+            try {
+              let Data = JSON.stringify(res.data.data);
+              setStorage("loginData", Data);
+              if (this.accountVal) {
+                setStorage("account", this.loginForm.userName);
               }
+              if (this.passwordVal) {
+                setStorage("password", this.loginForm.password);
+              }
+              this.$store.commit("LogInDate", Data);
+              setStorage("projectTit", this.$t("menu.overview"));
+              this.$router.push("/home");
+            } catch (error) {
+              MessageBox(
+                `${this.$t("loginMsg.tips")}`,
+                `${this.$t("loginMsg.sortage")}`
+              );
             }
-          } else {
-            onError("请输入正确的用户名密码");
           }
-        })
-        .catch(error => {
-          console.log(error);
-          onError(error);
-        });
+        }
+      });
     },
     init() {
       if (typeof localStorage === "object") {
@@ -154,7 +155,10 @@ export default {
             this.passwordVal = true;
           }
         } catch (error) {
-          MessageBox("提示", "请关闭无痕模式后，在访问");
+          MessageBox(
+            `${this.$t("loginMsg.tips")}`,
+            `${this.$t("loginMsg.sortage")}`
+          );
         }
       }
     }

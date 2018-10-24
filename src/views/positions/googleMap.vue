@@ -80,6 +80,7 @@ export default {
         }
       }
       this.markerTime.forEach(key => {
+        const self = this;
         key.pointer.addListener("click", e => {
           var latLngData =
             e.latLng.lat().toFixed(6) + "," + e.latLng.lng().toFixed(6);
@@ -95,13 +96,19 @@ export default {
               if (data.status === "OK") {
                 address = data.results[0].formatted_address;
               } else {
-                address = "地址获取失败";
+                address = self.$t("positions.getAdressErr");
               }
-              let site = `电池编号：${key.datas[3]}<br />设备编号：${
+              let site = `${self.$t("positions.batteryCode")}：${
+                key.datas[3]
+              }<br />${self.$t("positions.deviceCode")}：${
                 key.deviceCode
-              }<br />时间：${
+              }<br />${self.$t("positions.updateTime")}：${
                 key.datas[2]
-              }<br />坐标：${latLngData}<br />地址：${address}`;
+              }<br />${self.$t(
+                "positions.latLng"
+              )}：${latLngData}<br />${self.$t(
+                "positions.address"
+              )}：${address}`;
               this.infowindow = new google.maps.InfoWindow({
                 content: site
               });

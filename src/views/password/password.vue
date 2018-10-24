@@ -2,19 +2,19 @@
   <div class="forms">
     <ul>
       <li>
-        <div class="title">新密码</div>
-        <div><input placeholder="请输入新密码" v-model="password" type="password"></div>
+        <div class="title">{{$t('password.new')}}</div>
+        <div><input :placeholder="$t('password.placeholder')" v-model="password" type="password"></div>
       </li>
     </ul>
     <div class="btns">
-      <mt-button @click="saveClick" type="primary" size="small">修改密码</mt-button>
+      <mt-button @click="saveClick" type="primary" size="small">{{$t('password.changeBtn')}}</mt-button>
     </div>
   </div>
 </template>
 <script>
 import { Indicator } from "mint-ui";
 import { changePassword } from "../../api/index";
-import { onTimeOut, onSuccess, onError } from "../../utils/callback";
+import { onSuccess, onError } from "../../utils/callback";
 
 export default {
   data() {
@@ -29,28 +29,18 @@ export default {
         password: this.password
       };
       if (!this.password) {
-        onError("请输入新密码");
+        onError(`${this.$t("password.error")}`);
         return;
       }
       Indicator.open();
-      changePassword(userObj)
-        .then(res => {
-          console.log(res);
-          Indicator.close();
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (res.data.code === 0) {
-            this.password = "";
-            onSuccess("修改成功！");
-          }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch(() => {
-          onError("服务器请求超时，请稍后重试");
-        });
+      changePassword(userObj).then(res => {
+        console.log(res);
+        Indicator.close();
+        if (res.data && res.data.code === 0) {
+          this.password = "";
+          onSuccess(`${this.$t("password.success")}`);
+        }
+      });
     }
   }
 };
@@ -80,7 +70,7 @@ export default {
         text-indent: 1em;
       }
       &.title {
-        flex: 0 0 80px;
+        flex: 0 0 130px;
       }
     }
   }

@@ -3,14 +3,14 @@
     <div id="AddContainer" class="fenceContainer"></div>
     <div class="HandleBtn" v-if="addFence">
       <!-- <span class="Tiptext">Tip：选择区域后，鼠标右键结束选区</span> -->
-      <mt-button size="small" @click="cancelSetings" type="default">取消设置</mt-button>
-      <mt-button size="small" @click="doAddFence" type="primary">确定设置</mt-button>
-      <mt-button size="small" @click="goBack" type="danger">返回</mt-button>
+      <mt-button size="small" @click="cancelSetings" type="default">{{$t('fence.cancelSeting')}}</mt-button>
+      <mt-button size="small" @click="doAddFence" type="primary">{{$t('fence.sureSeting')}}</mt-button>
+      <mt-button size="small" @click="goBack" type="danger">{{$t('fence.back')}}</mt-button>
       <p></p>
     </div>
     <div class="HandleBtn" v-else>
-      <mt-button size="small" @click="ToAddFence" type="primary">添加围栏</mt-button>
-      <mt-button size="small" @click="ToDeleteFence" type="danger">删除围栏</mt-button>
+      <mt-button size="small" @click="ToAddFence" type="primary">{{$t('fence.addBtn')}}</mt-button>
+      <mt-button size="small" @click="ToDeleteFence" type="danger">{{$t('fence.delBtn')}}</mt-button>
     </div>
   </div>
 </template>
@@ -19,7 +19,7 @@
 import google from "google";
 // import { Indicator } from "mint-ui";
 import { getFence, addFence, delFence } from "../../api/index";
-import { onTimeOut, onError, onWarn, onSuccess } from "../../utils/callback";
+import { onError, onWarn, onSuccess } from "../../utils/callback";
 
 let map;
 let markers = [];
@@ -62,41 +62,21 @@ export default {
           google.maps.event.clearListeners(map, "click");
         }
       });
-      // drawingManager = new google.maps.drawing.DrawingManager({
-      //   drawingMode: google.maps.drawing.OverlayType.MARKER,
-      //   drawingControl: false,
-      //   drawingControlOptions: {
-      //     position: google.maps.ControlPosition.TOP_CENTER,
-      //     drawingModes: ["marker"]
-      //   }
-      // });
-      // drawingManager.setMap(map);
-      // let str = "";
-      // google.maps.event.addListener(
-      //   drawingManager,
-      //   "overlaycomplete",
-      //   event => {
-      //     // drawingManager.setDrawingMode(null); // 禁止点击
-      //     console.log(event);
-      //     if (event.type === "marker") {
-      //       str += `${event.overlay.position.lng()},${event.overlay.position.lat()};`;
-      //     }
-      //     console.log(str);
-      //     this.fencePonter = str;
-      //     // this.fencePonter = polygon.getPath().getArray(); // 获取在地图上多边形顶点的坐标
-      //   }
-      // );
     },
     // 已经添加了围栏，根据围栏坐标 画出围栏
     hasFence(gpsList, id) {
       this.addFence = false;
       let poi = gpsList.substring(0, gpsList.length - 1).split(";");
       let allPointers = [];
-      poi.forEach(res => {
+
+      let bounds = new google.maps.LatLngBounds();
+      poi.forEach((res, index) => {
         let item = res.split(",");
         let arr = new google.maps.LatLng(item[1], item[0]);
+        bounds.extend(arr);
         allPointers.push(arr);
       });
+      map.fitBounds(bounds); // 自适应显示
       let bermudaTriangle = new google.maps.Polygon({
         paths: [allPointers],
         strokeColor: "blue",
@@ -131,34 +111,24 @@ export default {
           0,
           this.fencePonter.length - 1
         );
-        addFence(gpsObj)
-          .then(res => {
-            console.log(res);
-            if (res.data.code === 1) {
-              onTimeOut(this.$router);
+        addFence(gpsObj).then(res => {
+          console.log(res);
+
+          if (res.data && res.data.code === 0) {
+            google.maps.event.clearListeners(map, "click");
+            if (markers.length > 0) {
+              markers.forEach(key => {
+                key.setMap(null);
+              });
+              markers = [];
             }
-            if (res.data.code === 0) {
-              google.maps.event.clearListeners(map, "click");
-              if (markers.length > 0) {
-                markers.forEach(key => {
-                  key.setMap(null);
-                });
-                markers = [];
-              }
-              // drawingManager.setDrawingMode(null);
-              onSuccess("添加成功");
-              this.getData();
-            }
-            if (res.data.code === -1) {
-              onError(res.data.msg);
-            }
-          })
-          .catch(err => {
-            console.log(err);
-            onError("服务器请求超时，请稍后重试");
-          });
+            // drawingManager.setDrawingMode(null);
+            onSuccess(this.$t("fence.tipMsg.addSuccess"));
+            this.getData();
+          }
+        });
       } else {
-        onError("请选区围栏点");
+        onError(this.$t("fence.tipMsg.addPointer"));
       }
     },
     /* 取消设置 */
@@ -176,27 +146,17 @@ export default {
     /* 删除围栏 */
     ToDeleteFence() {
       if (!this.fenceId) {
-        onWarn("请点击要删除的围栏");
+        onWarn(this.$t("fence.tipMsg.selectToDel"));
         return;
       }
-      delFence(this.fenceId)
-        .then(res => {
-          console.log(res);
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (res.data.code === 0) {
-            onSuccess("删除成功");
-            this.getData();
-          }
-          if (res.data.code === -1) {
-            this.$message.error(res.data.msg);
-          }
-        })
-        .catch(err => {
-          console.log(err);
-          onError("服务器请求超时，请稍后重试");
-        });
+      delFence(this.fenceId).then(res => {
+        console.log(res);
+
+        if (res.data && res.data.code === 0) {
+          onSuccess(this.$t("fence.tipMsg.delSuccess"));
+          this.getData();
+        }
+      });
     },
     /* goBack 返回 */
     goBack() {
@@ -214,10 +174,8 @@ export default {
     getData() {
       getFence().then(res => {
         console.log(res);
-        if (res.data.code === 1) {
-          onTimeOut(this.$router);
-        }
-        if (res.data.code === 0) {
+
+        if (res.data && res.data.code === 0) {
           if (bermudaTriangleArr.length > 0) {
             bermudaTriangleArr.forEach(key => {
               key.setMap(null);
@@ -233,9 +191,6 @@ export default {
           } else {
             this.buildFence();
           }
-        }
-        if (res.data.code === -1) {
-          onError(res.data.msg);
         }
       });
     },
@@ -254,7 +209,7 @@ export default {
         });
         this.getData();
       } catch (err) {
-        onError("地图加载失败，请检查网络连接");
+        onError(this.$t("mapError"));
       }
     }
   },
@@ -266,6 +221,7 @@ export default {
 
 <style lang="scss" scoped>
 @import url("../../common/style/index.scss");
+
 .outer-box {
   position: absolute;
   top: $baseHeader;

@@ -2,11 +2,11 @@
   <div class="battery">
     <div class="tableHead">
       <ul>
-        <li class="index">序号</li>
-        <li class="times">告警时间</li>
-        <li>电池编号</li>
-        <li class="devices">告警内容</li>
-        <li class="index">操作</li>
+        <li class="index">{{$t('alarmList.serial')}}</li>
+        <li class="times">{{$t('alarmList.time')}}</li>
+        <li>{{$t('alarmList.batteryCode')}}</li>
+        <li class="devices">{{$t('alarmList.content')}}</li>
+        <li class="index">{{$t('alarmList.handle')}}</li>
       </ul>
     </div>
     <div class="tableBody" ref="wrapper" :style="{ height: wrapperHeight + 'px' }">
@@ -20,7 +20,7 @@
             </div>
             <div>{{key.batteryId}}</div>
             <div class="devices">{{key.content}}</div>
-            <div @click="Details(key)" class="blueColor index">详情</div>
+            <div @click="Details(key)" class="blueColor index">{{$t('alarmList.detail')}}</div>
           </li>
         </ul>
         <div slot="bottom" class="mint-loadmore-bottom">
@@ -34,34 +34,34 @@
     <mt-popup v-model="showIt" popup-transition="popup-fade">
       <div class="table">
         <div class="header">
-          电池详情
+          {{$t('alarmList.batteryDetail')}}
         </div>
         <div class="info">
           <ul>
             <li>
-              <div>电池编号</div>
+              <div>{{$t('alarmList.batteryNumber')}}</div>
               <div class="cons">{{detailObj.batteryId}}</div>
             </li>
             <li>
-              <div>设备编号</div>
+              <div>{{$t('alarmList.deviceCode')}}</div>
               <div class="cons">{{detailObj.deviceId}}</div>
             </li>
             <li>
-              <div>告警时间</div>
+              <div>{{$t('alarmList.time')}}</div>
               <div class="cons">{{detailObj.alarmedTime}}</div>
             </li>
             <li>
-              <div>告警内容</div>
+              <div>{{$t('alarmList.content')}}</div>
               <div class="cons">{{detailObj.content}}</div>
             </li>
             <li>
-              <div>设备坐标</div>
+              <div>{{$t('alarmList.grid')}}</div>
               <div class="cons">{{detailObj.grid}}</div>
             </li>
             <li>
-              <div>查看位置</div>
+              <div>{{$t('alarmList.position')}}</div>
               <div class="cons">
-                <mt-button @click="alarmPos" size="small" type="primary">查看告警位置</mt-button>
+                <mt-button @click="alarmPos" size="small" type="primary">{{$t('alarmList.location')}}</mt-button>
               </div>
             </li>
           </ul>
@@ -74,7 +74,7 @@
 import { Loadmore, Spinner, Popup, Indicator } from "mint-ui";
 import { alarmList } from "../../api/index";
 import { sortGps } from "../../utils/transition";
-import { onTimeOut, onError } from "../../utils/callback";
+import { onError } from "../../utils/callback";
 
 export default {
   components: {
@@ -107,47 +107,37 @@ export default {
         pageNum: this.pageNum,
         pageSize: 20
       };
-      alarmList(pageObj)
-        .then(res => {
-          console.log(res);
-          Indicator.close();
-          this.bottomStatus = "";
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (res.data.code === 0) {
-            let result = res.data.data;
-            this.totalNum = result.total;
-            if (result.data.length > 0) {
-              if (result.data.length < 20) {
-                this.allLoaded = true;
-              }
-              result.data.forEach(key => {
-                let obj = {};
-                let resultTime = key.alarmedTime.toString().split(" ");
-                // obj.last = timeFormats(resultTime);
-                obj.alarmedTime = key.alarmedTime;
-                obj.hhmmss = resultTime[1];
-                obj.yymmdd = resultTime[0];
-                obj.batteryId = key.batteryId; // 电池id
-                obj.deviceId = key.deviceId; // 设备id
-                obj.content = key.msg; // 告警内容
-                obj.level = key.level; // 告警级别
-                obj.grid = `${sortGps(key.longitude)};${sortGps(key.latitude)}`;
-                this.tableData.push(obj);
-              });
-            } else {
-              onError("暂无数据");
+      alarmList(pageObj).then(res => {
+        console.log(res);
+        Indicator.close();
+        this.bottomStatus = "";
+
+        if (res.data && res.data.code === 0) {
+          let result = res.data.data;
+          this.totalNum = result.total;
+          if (result.data.length > 0) {
+            if (result.data.length < 20) {
+              this.allLoaded = true;
             }
+            result.data.forEach(key => {
+              let obj = {};
+              let resultTime = key.alarmedTime.toString().split(" ");
+              // obj.last = timeFormats(resultTime);
+              obj.alarmedTime = key.alarmedTime;
+              obj.hhmmss = resultTime[1];
+              obj.yymmdd = resultTime[0];
+              obj.batteryId = key.batteryId; // 电池id
+              obj.deviceId = key.deviceId; // 设备id
+              obj.content = key.msg; // 告警内容
+              obj.level = key.level; // 告警级别
+              obj.grid = `${sortGps(key.longitude)};${sortGps(key.latitude)}`;
+              this.tableData.push(obj);
+            });
+          } else {
+            onError("暂无数据");
           }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch(err => {
-          console.log(err);
-          onError("服务器请求超时，请稍后重试");
-        });
+        }
+      });
     },
     alarmPos() {
       // 查看位置

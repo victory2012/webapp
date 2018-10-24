@@ -25,17 +25,17 @@
       <ul @click="showMore">
         <li @click="toUser">
           <i class="iconfont icon-user"></i>
-          个人信息
+          {{$t('userInfo.userMsg')}}
           <!-- <router-link to="/user">个人信息</router-link> -->
         </li>
         <li @click="toPassword">
           <i class="iconfont icon-password"></i>
-          修改密码
+          {{$t('userInfo.pasword')}}
           <!-- <router-link to="/password">修改密码</router-link> -->
         </li>
         <li @click="logout">
           <i class="iconfont icon-logout"></i>
-          <span>退出登录</span>
+          <span>{{$t('userInfo.logOut')}}</span>
         </li>
       </ul>
     </div>
@@ -51,7 +51,7 @@ export default {
     return {
       showIt: false,
       collapse: false,
-      titles: getStorage("projectTit") || "电池总览"
+      titles: getStorage("projectTit")
     };
   },
   computed: {
@@ -83,12 +83,12 @@ export default {
     },
     toUser() {
       this.$router.push("/user");
-      this.titles = "个人信息";
+      this.titles = this.$t("userInfo.userMsg");
       setStorage("projectTit", this.titles);
     },
     toPassword() {
       this.$router.push("/password");
-      this.titles = "修改密码";
+      this.titles = this.$t("userInfo.pasword");
       setStorage("projectTit", this.titles);
     },
     showMore() {

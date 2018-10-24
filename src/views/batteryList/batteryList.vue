@@ -2,11 +2,11 @@
   <div class="battery">
     <div class="tableHead">
       <ul>
-        <li class="index">序号</li>
-        <li class="batteryid">电池编号</li>
-        <li>绑定状态</li>
-        <li>运行状态</li>
-        <li class="index">详情</li>
+        <li class="index">{{$t('batteryList.serial')}}</li>
+        <li class="batteryid">{{$t('batteryList.batteryCode')}}</li>
+        <li>{{$t('batteryList.binding')}}</li>
+        <li>{{$t('batteryList.running')}}</li>
+        <li class="index">{{$t('batteryList.detail')}}</li>
       </ul>
     </div>
     <div class="tableBody" ref="wrapper" :style="{ height: wrapperHeight + 'px' }">
@@ -17,7 +17,7 @@
             <div class="batteryid">{{key.batteryId}}</div>
             <div>{{key.bindingName}}</div>
             <div @click="LookRun(key)" :class="[key.OLS ? 'GreenColor': 'redColor']">{{key.online}}</div>
-            <div class="blueColor index" @click="toLookDetail(key)">详情</div>
+            <div class="blueColor index" @click="toLookDetail(key)">{{$t('batteryList.detail')}}</div>
           </li>
         </ul>
         <div slot="bottom" class="mint-loadmore-bottom">
@@ -31,36 +31,36 @@
     <mt-popup v-model="showIt" popup-transition="popup-fade">
       <div class="table">
         <div class="header">
-          电池详情
+          {{$t('batteryList.batteryDetail')}}
         </div>
         <div class="info">
           <ul>
             <li>
-              <div>电池编号</div>
+              <div>{{$t('batteryList.batteryNumber')}}</div>
               <div class="cons">{{detailObj.batteryId}}</div>
             </li>
             <li>
-              <div>电池型号</div>
+              <div>{{$t('batteryList.model')}}</div>
               <div class="cons">{{detailObj.model}}</div>
             </li>
             <li>
-              <div>电池组规格</div>
+              <div>{{$t('batteryList.specif')}}</div>
               <div class="cons">{{detailObj.specification}}</div>
             </li>
             <li>
-              <div>客户企业名称</div>
+              <div>{{$t('batteryList.customer')}}</div>
               <div class="cons">{{detailObj.customerName}}</div>
             </li>
             <li>
-              <div>监测设备编号</div>
+              <div>{{$t('batteryList.deviceCode')}}</div>
               <div class="cons">{{detailObj.deviceId}}</div>
             </li>
             <li>
-              <div>绑定状态</div>
+              <div>{{$t('batteryList.bindStatus')}}</div>
               <div class="cons">{{detailObj.bindingName}}</div>
             </li>
             <li>
-              <div>在线状态</div>
+              <div>{{$t('batteryList.onlineStatus')}}</div>
               <div class="cons">{{detailObj.online}}</div>
             </li>
           </ul>
@@ -77,7 +77,6 @@ import {
   GetList
   // deleteBattery
 } from "../../api/index";
-import { onTimeOut, onError } from "../../utils/callback";
 import { getStorage } from "../../utils/transition";
 
 export default {
@@ -120,45 +119,39 @@ export default {
         pageSize: 20,
         pageNum: this.pageNum
       };
-      GetList(pageObj)
-        .then(res => {
-          // this.loading = false;
-          console.log(res);
-          this.bottomStatus = "";
-          let result = res.data;
-          if (result.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (result.code === 0) {
-            if (result.data.data) {
-              let tableObj = result.data.data;
-              this.totalPage = result.data.total;
-              this.total = result.data.totalPage;
-              if (tableObj.length < 20) {
-                this.allLoaded = true;
-              }
-              tableObj.forEach(key => {
-                if (key.onlineStatus === 1) {
-                  key.online = "在线";
-                  key.OLS = true;
-                } else {
-                  key.online = "离线";
-                  key.OLS = false;
-                }
-                key.bindingName = key.bindingStatus === 0 ? "未绑定" : "已绑定";
-                // key.online = key.onlineStatus === 1 ? "离线" : "在线";
-                key.status = key.status === 0 ? false : true;
-                this.tableData.push(key);
-              });
-              this.loading = false;
+      GetList(pageObj).then(res => {
+        // this.loading = false;
+        console.log(res);
+        this.bottomStatus = "";
+        let result = res.data;
+        if (result.code === 0) {
+          if (result.data.data) {
+            let tableObj = result.data.data;
+            this.totalPage = result.data.total;
+            this.total = result.data.totalPage;
+            if (tableObj.length < 20) {
+              this.allLoaded = true;
             }
+            tableObj.forEach(key => {
+              if (key.onlineStatus === 1) {
+                key.online = this.$t("batteryList.online");
+                key.OLS = true;
+              } else {
+                key.online = this.$t("batteryList.offline");
+                key.OLS = false;
+              }
+              key.bindingName =
+                key.bindingStatus === 0
+                  ? this.$t("batteryList.noBind")
+                  : this.$t("batteryList.hasBind");
+              // key.online = key.onlineStatus === 1 ? "离线" : "在线";
+              key.status = key.status === 0 ? false : true;
+              this.tableData.push(key);
+            });
+            this.loading = false;
           }
-        })
-        .catch(err => {
-          this.loading = false;
-          console.log(err);
-          onError("服务器请求超时，请稍后重试");
-        });
+        }
+      });
     },
     toLookDetail(key) {
       this.detailObj = key;

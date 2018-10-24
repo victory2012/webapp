@@ -1,33 +1,33 @@
 <template>
   <div class="forms">
     <div class="buttons">
-      <mt-button @click="Editor" v-show="phoneEdit" type="primary" size="small">编辑</mt-button>
-      <mt-button @click="saveClick" v-show="saveInfo" type="danger" size="small">保存</mt-button>
-      <mt-button @click="cancelClick" v-show="saveInfo" type="default" size="small">取消</mt-button>
+      <mt-button @click="Editor" v-show="phoneEdit" type="primary" size="small">{{$t('user.edit')}}</mt-button>
+      <mt-button @click="saveClick" v-show="saveInfo" type="danger" size="small">{{$t('user.save')}}</mt-button>
+      <mt-button @click="cancelClick" v-show="saveInfo" type="default" size="small">{{$t('user.cancel')}}</mt-button>
     </div>
     <ul>
       <li>
-        <div class="title">用户名</div>
+        <div class="title">{{$t('user.userName')}}</div>
         <div><input :value="userArr.userName" type="text" disabled></div>
       </li>
       <li>
-        <div class="title">账户身份</div>
+        <div class="title">{{$t('user.userRole')}}</div>
         <div><input :value="userArr.userRole" type="text" disabled></div>
       </li>
       <li>
-        <div class="title">企业身份</div>
+        <div class="title">{{$t('user.enterpriseRole')}}</div>
         <div><input :value="userArr.enterpriseRole" type="text" disabled></div>
       </li>
       <li>
-        <div class="title">企业名称</div>
+        <div class="title">{{$t('user.enterpriseName')}}</div>
         <div><input :value="userArr.enterpriseName" type="text" disabled></div>
       </li>
       <li>
-        <div class="title">手机号码</div>
+        <div class="title">{{$t('user.phone')}}</div>
         <div><input v-model="userArr.phoneNumber" type="text" :disabled="phoneEdit"></div>
       </li>
       <li>
-        <div class="title">邮箱</div>
+        <div class="title">{{$t('user.email')}}</div>
         <div><input v-model="userArr.email" type="text" :disabled="phoneEdit"></div>
       </li>
     </ul>
@@ -37,7 +37,7 @@
 <script>
 import { Indicator } from "mint-ui";
 import { getUserInfo, changeUserInfo } from "../../api/index";
-import { onTimeOut, onSuccess, onError } from "../../utils/callback";
+import { onSuccess } from "../../utils/callback";
 
 export default {
   data() {
@@ -56,25 +56,17 @@ export default {
       this.getData();
     },
     getData() {
-      getUserInfo()
-        .then(res => {
-          console.log(res.data);
-          Indicator.close();
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (res.data.code === 0) {
-            this.userArr = res.data.data;
-            this.userArr.phoneNumber = res.data.data.phoneNumber || "无";
-            this.userArr.email = res.data.data.email || "无";
-          }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch(() => {
-          onError("服务器请求超时，请稍后重试");
-        });
+      getUserInfo().then(res => {
+        console.log(res.data);
+        Indicator.close();
+
+        if (res.data && res.data.code === 0) {
+          this.userArr = res.data.data;
+          this.userArr.phoneNumber =
+            res.data.data.phoneNumber || this.$t("user.no");
+          this.userArr.email = res.data.data.email || this.$t("user.no");
+        }
+      });
     },
     Editor() {
       this.phoneEdit = false;
@@ -93,26 +85,16 @@ export default {
         email: this.userArr.email,
         phoneNumber: this.userArr.phoneNumber
       };
-      changeUserInfo(userObj)
-        .then(res => {
-          console.log(res);
-          Indicator.close();
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
-          }
-          if (res.data.code === 0) {
-            this.userMsgBox = false;
-            this.ruleForm = {};
-            onSuccess("修改成功");
-            this.getData();
-          }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch(() => {
-          onError("服务器请求超时，请稍后重试");
-        });
+      changeUserInfo(userObj).then(res => {
+        console.log(res);
+        Indicator.close();
+        if (res.data && res.data.code === 0) {
+          this.userMsgBox = false;
+          this.ruleForm = {};
+          onSuccess(`${this.$t("user.seccess")}`);
+          this.getData();
+        }
+      });
     }
   }
 };
@@ -141,7 +123,7 @@ export default {
         text-indent: 1em;
       }
       &.title {
-        flex: 0 0 80px;
+        flex: 0 0 130px;
       }
     }
   }

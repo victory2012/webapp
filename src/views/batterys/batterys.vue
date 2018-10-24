@@ -6,32 +6,32 @@
           <div class="icon blue">
             <i class="iconfont icon-suoyoushangpin2"></i>
           </div>
-          <div>总数:
-            <span style="color:rgb(45, 140, 240)">{{allDevice}}</span>
+          <div>{{$t('overview.total')}}:
+            <span style="color:rgb(45, 140, 240)">{{count.total}}</span>
           </div>
         </li>
         <li>
           <div class="icon green">
             <i class="iconfont icon-onlinepay"></i>
           </div>
-          <div>在线:
-            <span style="color:rgb(100, 213, 114)">{{onLine}}</span>
+          <div>{{$t('overview.online')}}:
+            <span style="color:rgb(100, 213, 114)">{{count.monthTotal}}</span>
           </div>
         </li>
         <li>
           <div class="icon red">
             <i class="iconfont icon-offline"></i>
           </div>
-          <div>离线:
-            <span style="color:rgb(242, 94, 67)">{{offLine}}</span>
+          <div>{{$t('overview.offLine')}}:
+            <span style="color:rgb(242, 94, 67)">{{count.availableTotal}}</span>
           </div>
         </li>
         <li>
           <div class="icon yellow">
             <i class="iconfont icon-alarm"></i>
           </div>
-          <div>无效:
-            <span style="color:#999">0</span>
+          <div>{{$t('overview.invalid')}}:
+            <span style="color:#999">{{count.invalid}}</span>
           </div>
         </li>
       </ul>
@@ -44,8 +44,8 @@
 <script>
 import { mapGetters } from "vuex";
 import { Indicator } from "mint-ui";
-import { websockets, GetDeviceList } from "../../api/index";
-import { onTimeOut, onError, onWarn } from "../../utils/callback";
+import { websockets, GetDeviceList, GetCount } from "../../api/index";
+import { onError, onWarn } from "../../utils/callback";
 import gaodaoMap from "./gaodeMap";
 import googleMap from "./googleMap";
 
@@ -59,6 +59,7 @@ export default {
   },
   data() {
     return {
+      count: {},
       mapData: {},
       lnglats: [],
       onLine: 0,
@@ -74,27 +75,18 @@ export default {
     ...mapGetters(["GETMAPTYPE"])
   },
   methods: {
-    // mapInit(obj, type) {
-    //   let allmarkerArr = Object.values(obj);
-    //   allmarkerArr.forEach(key => {
-    //     let lngs = key.toString().split(",");
-    //     let marker = new AMap.Marker({
-    //       icon: new AMap.Icon({
-    //         image: `http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png`,
-    //         size: new AMap.Size(20, 35)
-    //       }),
-    //       position: [lngs[0], lngs[1]],
-    //       offset: new AMap.Pixel(-12, -12),
-    //       zIndex: 101,
-    //       clickable: true,
-    //       map: map
-    //     });
-    //     this.markers.push(marker);
-    //   });
-    //   if (type) {
-    //     map.setFitView(); // 地图自适应
-    //   }
-    // },
+    /* 获取统计数据 */
+    getTocalsData() {
+      GetCount().then(res => {
+        console.log("GetCount", res);
+        if (res.data && res.data.code === 0) {
+          let result = res.data.data;
+          this.count = result;
+          this.count.invalid =
+            Number(result.total) - Number(result.availableTotal);
+        }
+      });
+    },
     /*
       http请求 获取全部电池设备
      */
@@ -105,40 +97,31 @@ export default {
         bindingStatus: ""
       };
       Indicator.open();
-      GetDeviceList(pageObj)
-        .then(res => {
-          console.log(res);
-          Indicator.close();
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
+      GetDeviceList(pageObj).then(res => {
+        console.log(res);
+        Indicator.close();
+
+        if (res.data && res.data.code === 0) {
+          let result = res.data.data.data;
+          this.allDevice = result.length;
+          pointerObj = {};
+          if (result.length > 0) {
+            result.forEach(key => {
+              if (key.longitude && key.latitude && key.onlineStatus === 1) {
+                pointerObj[key.deviceId] = `${key.longitude},${key.latitude}`;
+                this.sendData.param.push(key.deviceId);
+              }
+            });
+            this.mapData = {
+              data: pointerObj,
+              type: "http"
+            };
+            this.sockets(JSON.stringify(this.sendData));
+          } else {
+            onWarn("暂无设备, 请先注册设备");
           }
-          if (res.data.code === 0) {
-            let result = res.data.data.data;
-            this.allDevice = result.length;
-            pointerObj = {};
-            if (result.length > 0) {
-              result.forEach(key => {
-                if (key.longitude && key.latitude && key.onlineStatus === 1) {
-                  pointerObj[key.deviceId] = `${key.longitude},${key.latitude}`;
-                  this.sendData.param.push(key.deviceId);
-                }
-              });
-              this.mapData = {
-                data: pointerObj,
-                type: "http"
-              };
-              this.sockets(JSON.stringify(this.sendData));
-            } else {
-              onWarn("暂无设备, 请先注册设备");
-            }
-          }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch(() => {
-          onError("服务器请求超时，请稍后重试");
-        });
+        }
+      });
     },
     /*
       websockets 请求
@@ -189,6 +172,7 @@ export default {
       });
     },
     init() {
+      this.getTocalsData();
       this.narmleHttp();
     }
   },
