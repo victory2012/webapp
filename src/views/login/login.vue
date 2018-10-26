@@ -1,5 +1,8 @@
 <template>
   <div class="login_page fillcontain">
+    <div @click="sheetVisible=true" class="languageWarp">
+      <p class="languageCenter">{{localLanguge}}<i class="iconfont icon-icon11 more"></i></p>
+    </div>
     <div class="logo">
       <img src="../../../static/img/logo.png" alt="">
     </div>
@@ -26,26 +29,34 @@
         </div>
         <div class="buttom">
           <mt-button class="btns" type="primary" size='small' @click="submitForm">{{$t('loginMsg.loginBtn')}}</mt-button>
-          <mt-button class="btns" type="primary" size='small' @click="changLocalLang">{{localLanguge}}</mt-button>
+          <!-- <mt-button class="btns" type="primary" size='small' @click="changLocalLang">{{localLanguge}}</mt-button> -->
         </div>
       </div>
     </section>
+    <mt-actionsheet :actions="actions" v-model="sheetVisible" cancelText="Cancel">
+    </mt-actionsheet>
   </div>
 </template>
 
 <script>
-import { Field, MessageBox } from "mint-ui";
+import { Field, MessageBox, Actionsheet, Indicator } from "mint-ui";
 import { getAdminInfo } from "../../api/index";
 import { onError } from "../../utils/callback";
 import { setStorage, getStorage } from "../../utils/transition";
 
 export default {
   components: {
-    "mt-field": Field
+    "mt-field": Field,
+    "mt-actionsheet": Actionsheet
   },
   data() {
     return {
+      sheetVisible: false,
       accounts: [],
+      actions: [
+        { name: "中文", method: this.languageChange, id: "cn" },
+        { name: "English", method: this.languageChange, id: "en" }
+      ],
       pwd: false,
       accountVal: "",
       passwordVal: "",
@@ -57,8 +68,7 @@ export default {
         password: ""
       },
       localLanguge: "",
-      showLogin: false,
-      langs: "cn"
+      showLogin: false
     };
   },
   created() {
@@ -84,19 +94,32 @@ export default {
     }
   },
   methods: {
-    changLocalLang() {
-      if (this.langs === "en") {
-        this.$i18n.locale = "CN";
-        this.langs = "cn";
-        setStorage("locale", "CN");
-        this.localLanguge = "中文";
-      } else {
-        this.langs = "en";
-        this.localLanguge = "English";
+    languageChange(str) {
+      console.log("languageChange", str);
+      if (str.id === "en") {
         this.$i18n.locale = "EN";
         setStorage("locale", "EN");
+        this.localLanguge = "Language";
+      } else {
+        // this.langs = "en";
+        this.localLanguge = "中文";
+        this.$i18n.locale = "CN";
+        setStorage("locale", "CN");
       }
     },
+    // changLocalLang() {
+    //   if (this.langs === "en") {
+    //     this.$i18n.locale = "CN";
+    //     this.langs = "cn";
+    //     setStorage("locale", "CN");
+    //     this.localLanguge = "中文";
+    //   } else {
+    //     this.langs = "en";
+    //     this.localLanguge = "English";
+    //     this.$i18n.locale = "EN";
+    //     setStorage("locale", "EN");
+    //   }
+    // },
     submitForm() {
       if (!this.loginForm.userName) {
         this.accountTip = "error";
@@ -113,8 +136,10 @@ export default {
       this.loginFun();
     },
     loginFun() {
+      Indicator.open();
       getAdminInfo(this.loginForm).then(res => {
         console.log(res);
+        Indicator.close();
         if (res.data && res.data.code === 0) {
           if (typeof localStorage === "object") {
             try {
@@ -175,9 +200,14 @@ export default {
   position: relative;
   // height: 100%;
   background-color: #ffffff;
+  .languageWarp {
+    padding: 20px 40px;
+    font-size: px2rem(14px);
+    text-align: right;
+  }
   .logo {
     text-align: center;
-    padding: px2rem(40px);
+    padding: px2rem(20px) px2rem(40px);
     img {
       width: px2rem(160px);
       height: auto;
@@ -201,7 +231,7 @@ export default {
       color: #242f42;
       font-weight: 700;
       text-align: center;
-      padding: px2rem(10px) 0 px2rem(20px);
+      padding: px2rem(10px) 10px px2rem(20px);
     }
   }
 }
@@ -215,6 +245,7 @@ export default {
   display: block;
   padding-left: 22px;
   cursor: pointer;
+  font-size: 13px;
   // vertical-align: middle;
 }
 .magic-checkbox + label:hover:before {

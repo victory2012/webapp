@@ -55,6 +55,7 @@
     }
     p {
       font-size: px2rem(14px);
+      margin-bottom: 5px;
     }
     .controlBtn {
       width: 26px;
@@ -81,7 +82,7 @@
     ul {
       width: 100%;
       background: #ffffff;
-      height: 400px;
+      height: 350px;
       overflow: scroll;
       li {
         font-size: px2rem(12px);
@@ -89,7 +90,7 @@
         position: relative;
         border-bottom: px2rem(1px) solid #f5f5f5;
         &.selected {
-          background: green;
+          background: #c7ebff;
           color: #fff;
           .onlines {
             color: #ffffff !important;
@@ -98,18 +99,18 @@
         .badges {
           padding-left: 15px;
           position: relative;
-          width: 80%;
+          // width: 80%;
           .hisBad {
             border: 1px solid #f0f0f0;
-            border-radius: 2px;
-            padding: 0 4px;
-            background: #ffffff;
-            color: #333333;
+            border-radius: 5px;
+            padding: 4px;
+            background: #98dbff;
+            color: #ffffff;
           }
           .onlines {
-            // position: absolute;
-            // top: 0;
-            // right: px2rem(-15px);
+            position: absolute;
+            top: -20px;
+            right: 0;
             font-size: px2rem(12px);
             color: red;
             &.off {
@@ -140,8 +141,14 @@ import AMap from "AMap";
 import AMapUI from "AMapUI";
 import { mapGetters } from "vuex";
 import { Indicator } from "mint-ui";
+import bus from "@/utils/bus";
 import { websockets, GetDeviceList } from "../../api/index";
-import { timeFormats, trakTimeformat, nowDate } from "../../utils/transition";
+import {
+  timeFormats,
+  trakTimeformat,
+  nowDate,
+  setStorage
+} from "../../utils/transition";
 import { onError } from "../../utils/callback";
 import googleMap from "./googleMap";
 import gaodeMap from "./gaodeMap";
@@ -186,19 +193,15 @@ export default {
     },
     next() {
       if (this.pageNum < this.total) {
-        Indicator.open();
         this.over();
-        this.markers && map.remove(this.markers);
         this.pageNum = this.pageNum + 1;
         this.getListData();
       }
     },
     previous() {
       if (this.pageNum > 1) {
-        Indicator.open();
         this.pageNum = this.pageNum - 1;
         this.over();
-        this.markers && map.remove(this.markers);
         this.getListData();
       }
     },
@@ -240,17 +243,20 @@ export default {
       } else {
         pageObj.bindingStatus = 1;
       }
+      Indicator.open();
       GetDeviceList(pageObj).then(res => {
         console.log(res.data);
-
+        Indicator.close();
         if (res.data && res.data.code === 0) {
           this.pointerArr = [];
           let center = res.data.data;
           let result = center.data;
-          this.total = center.total;
+          this.total = center.totalPage;
           let sendData = { api: "bind", param: [] };
           pointerObj = {};
           if (result.length > 0) {
+            this.naxtBtn = this.pageNum < this.total ? true : false;
+            this.previousBtn = this.pageNum === 1 ? false : true;
             if (this.pathParams) {
               result.forEach((key, index) => {
                 pointerObj[key.deviceId] = `${key.latitude},${
@@ -293,7 +299,7 @@ export default {
               this.mapInit(result);
             }
           } else {
-            onError("暂无设备, 请先注册设备");
+            onError(`${this.$t("positions.noDevice")}`);
           }
         }
       });
@@ -441,6 +447,12 @@ export default {
         path: "history",
         query: { batteryId: batteryId }
       });
+      let titles = `${this.$t("menu.history")}`;
+      bus.$emit("collapsed", {
+        collapse: false,
+        msg: titles
+      });
+      setStorage("projectTit", titles);
     }
   },
   /*
@@ -450,12 +462,12 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       if (from.name === "device" && vm.pathParams) {
-        vm.titles = "设备列表";
+        vm.titles = `${this.$t("positions.title1")}`;
         vm.deviceShow = true;
         vm.bindingStatus = "";
       }
       if (from.name === "batteryList" && vm.pathParams) {
-        vm.titles = "电池列表";
+        vm.titles = `${this.$t("positions.title2")}`;
         vm.deviceShow = false;
         vm.bindingStatus = 1;
       }

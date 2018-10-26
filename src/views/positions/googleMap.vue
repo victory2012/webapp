@@ -46,11 +46,7 @@ export default {
         this.markers = [];
       }
       let data = value.data;
-      // if (this.hasGet) {
-      //   map.setCenter(new google.maps.LatLng(key.latitude, key.longitude));
-      // } else {
-      //   this.hasGet = true;
-      // }
+
       let allmarkerArr = Object.values(data);
       let markerkeys = Object.keys(data);
       this.markerTime = [];
@@ -62,7 +58,9 @@ export default {
           var marker = new google.maps.Marker({
             position: latLng,
             label: `${i + 1}`,
-            title: `电池编号：${lngs[3]}\n设备编号：${markerkeys[i]}`,
+            title: `${this.$t("positions.batteryCode")}：${lngs[3]}\n${this.$t(
+              "positions.deviceCode"
+            )}：${markerkeys[i]}`,
             map: map
           });
           // map.setCenter(latLng);
@@ -151,6 +149,6 @@ export default {
 <style lang="scss" scoped>
 .mapWarrps {
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 40px);
 }
 </style>

@@ -70,14 +70,15 @@
   </div>
 </template>
 <script>
-import { Loadmore, Spinner, Popup } from "mint-ui";
+import { Loadmore, Spinner, Popup, Indicator } from "mint-ui";
 import {
   // addBattery,
   // deviceListOnly,
   GetList
   // deleteBattery
-} from "../../api/index";
-import { getStorage } from "../../utils/transition";
+} from "@/api/index";
+import { setStorage } from "@/utils/transition";
+import bus from "@/utils/bus";
 
 export default {
   components: {
@@ -119,8 +120,9 @@ export default {
         pageSize: 20,
         pageNum: this.pageNum
       };
+      Indicator.open();
       GetList(pageObj).then(res => {
-        // this.loading = false;
+        Indicator.close();
         console.log(res);
         this.bottomStatus = "";
         let result = res.data;
@@ -159,20 +161,24 @@ export default {
     },
     LookRun(key) {
       if (!key.OLS) return;
-      let userData = JSON.parse(getStorage("loginData"));
+      // let userData = JSON.parse(getStorage("loginData"));
       let deviceId = key.deviceId;
-      if (userData.mapType === 0) {
-        this.$router.push({
-          path: "position",
-          query: { deviceId: deviceId }
-        });
-      }
-      if (userData.mapType === 1) {
-        this.$router.push({
-          path: "googlePos",
-          query: { deviceId: deviceId }
-        });
-      }
+      let titles = `${this.$t("menu.realposition")}`;
+      this.$router.push({
+        path: "position",
+        query: { deviceId: deviceId }
+      });
+      bus.$emit("collapsed", {
+        collapse: false,
+        msg: titles
+      });
+      setStorage("projectTit", titles);
+      // if (userData.mapType === 1) {
+      //   this.$router.push({
+      //     path: "googlePos",
+      //     query: { deviceId: deviceId }
+      //   });
+      // }
     }
   }
 };
@@ -193,7 +199,7 @@ export default {
     top: $baseHeader;
     left: 0;
     width: 100%;
-    padding: 0 15px;
+    padding: 0 10px;
     border-bottom: 1px solid #e0e0e0;
     z-index: 10;
     background: #fcfbfb;
@@ -206,6 +212,7 @@ export default {
         flex: 1;
         text-align: center;
         color: #333;
+        font-size: px2rem(12px);
         &.batteryid {
           flex: 0 0 px2rem(90px);
         }
@@ -217,37 +224,41 @@ export default {
   }
   .tableBody {
     overflow: scroll;
-    padding: 40px 15px 0 15px;
-    li {
-      display: flex;
-      width: 100%;
-      border-bottom: 1px dashed #e0e0e0;
+    padding: 40px 10px 0 10px;
+    ul {
       overflow: scroll;
-      div {
-        height: 45px;
-        line-height: 45px;
-        flex: 1;
-        text-align: center;
-        color: rgb(96, 98, 102);
-        &.batteryid {
-          flex: 0 0 px2rem(90px);
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        &.index {
-          flex: 0 0 px2rem(32px);
-        }
-        &.blueColor {
-          color: #385cd1;
-        }
-        &.redColor {
-          color: #d43939;
-          text-decoration: underline;
-        }
-        &.GreenColor {
-          color: #3dd138;
-          text-decoration: underline;
+
+      li {
+        display: flex;
+        width: 100%;
+        border-bottom: 1px dashed #e0e0e0;
+
+        div {
+          height: 45px;
+          line-height: 45px;
+          flex: 1;
+          text-align: center;
+          color: rgb(96, 98, 102);
+          &.batteryid {
+            flex: 0 0 px2rem(90px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          &.index {
+            flex: 0 0 px2rem(32px);
+          }
+          &.blueColor {
+            color: #385cd1;
+          }
+          &.redColor {
+            color: #d43939;
+            text-decoration: underline;
+          }
+          &.GreenColor {
+            color: #3dd138;
+            text-decoration: underline;
+          }
         }
       }
     }

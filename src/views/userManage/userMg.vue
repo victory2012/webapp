@@ -66,7 +66,7 @@
   </div>
 </template>
 <script>
-import { Loadmore, Spinner, Popup } from "mint-ui";
+import { Loadmore, Spinner, Popup, Indicator } from "mint-ui";
 import { manufacturerList } from "../../api/index";
 import { onError } from "../../utils/callback";
 
@@ -106,8 +106,10 @@ export default {
         pageSize: 15,
         pageNum: this.pageNum
       };
+      Indicator.open();
       manufacturerList(pageObj)
         .then(res => {
+          Indicator.close();
           console.log(res);
           this.bottomStatus = "";
           let result = res.data;
@@ -123,13 +125,13 @@ export default {
               tableObj.forEach(key => {
                 key.accountRole = this.userRole(key.userRole);
                 key.status = key.status === 0 ? false : true;
-                key.email = key.email || "无";
-                key.phoneNumber = key.phoneNumber || "无";
+                key.email = key.email;
+                key.phoneNumber = key.phoneNumber;
                 key.enterpriseRole = this.companyRole(key.enterpriseRole);
                 this.tableData.push(key);
               });
             } else {
-              onError("暂无数据");
+              onError(`${this.$t("noData")}`);
             }
           }
         })

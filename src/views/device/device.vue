@@ -78,14 +78,14 @@
   </div>
 </template>
 <script>
-import { Loadmore, Spinner, Popup, MessageBox, Indicator } from "mint-ui";
+import { Loadmore, Spinner, Popup, Indicator } from "mint-ui";
 import {
   deviceList,
   // createDeviceList,
   enterpriseList,
   enterpriseCustomer
 } from "../../api/index";
-import { getStorage } from "../../utils/transition";
+// import { getStorage } from "../../utils/transition";
 import { onError } from "../../utils/callback";
 
 export default {
@@ -194,23 +194,25 @@ export default {
       this.showIt = true;
     },
     LookRun() {
-      let userData = JSON.parse(getStorage("loginData"));
+      // let userData = JSON.parse(getStorage("loginData"));
       let deviceId = this.detailObj.deviceId;
       if (this.detailObj.onlineStatus === 1) {
-        if (userData.mapType === 0) {
-          this.$router.push({
-            path: "position",
-            query: { deviceId: deviceId }
-          });
-        }
-        if (userData.mapType === 1) {
-          this.$router.push({
-            path: "googlePos",
-            query: { deviceId: deviceId }
-          });
-        }
-      } else {
-        MessageBox("提示", "此设备当前处于离线状态，不能查看当前位置");
+        this.$router.push({
+          path: "googlePos",
+          query: { deviceId: deviceId }
+        });
+        // if (userData.mapType === 0) {
+        //   this.$router.push({
+        //     path: "position",
+        //     query: { deviceId: deviceId }
+        //   });
+        // }
+        // if (userData.mapType === 1) {
+        //   this.$router.push({
+        //     path: "googlePos",
+        //     query: { deviceId: deviceId }
+        //   });
+        // }
       }
     },
     ToaddDevice() {
@@ -236,7 +238,7 @@ export default {
     top: $baseHeader;
     left: 0;
     width: 100%;
-    padding: 0 15px;
+    padding: 0 10px;
     border-bottom: 1px solid #e0e0e0;
     z-index: 10;
     background: #fcfbfb;
@@ -249,6 +251,7 @@ export default {
         flex: 1;
         text-align: center;
         color: #333;
+        font-size: 10px;
         &.device {
           flex: 0 0 px2rem(108px);
         }
@@ -259,37 +262,40 @@ export default {
     }
   }
   .tableBody {
-    padding: 40px 15px 80px 15px;
-    li {
-      display: flex;
-      width: 100%;
-      border-bottom: 1px dashed #e0e0e0;
-      overflow: scroll;
-      div {
-        height: 45px;
-        line-height: 45px;
-        flex: 1;
-        text-align: center;
-        color: rgb(96, 98, 102);
-        &.index {
-          flex: 0 0 px2rem(32px);
-        }
-        &.device {
-          flex: 0 0 px2rem(108px);
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        &.blueColor {
-          color: #385cd1;
-        }
-        &.redColor {
-          color: #d43939;
-          text-decoration: underline;
-        }
-        &.GreenColor {
-          color: #3dd138;
-          text-decoration: underline;
+    padding: 40px 10px 80px 10px;
+    ul {
+      overflow: auto;
+      li {
+        display: flex;
+        width: 100%;
+        border-bottom: 1px dashed #e0e0e0;
+        // overflow: scroll;
+        div {
+          height: 45px;
+          line-height: 45px;
+          flex: 1;
+          text-align: center;
+          color: rgb(96, 98, 102);
+          &.index {
+            flex: 0 0 px2rem(32px);
+          }
+          &.device {
+            flex: 0 0 px2rem(108px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          &.blueColor {
+            color: #385cd1;
+          }
+          &.redColor {
+            color: #d43939;
+            text-decoration: underline;
+          }
+          &.GreenColor {
+            color: #3dd138;
+            text-decoration: underline;
+          }
         }
       }
     }

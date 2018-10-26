@@ -4,8 +4,11 @@
   </div>
 </template>
 <script>
+/* eslint-disable */
+
 import AMap from "AMap";
 import AMapUI from "AMapUI";
+
 let map;
 let infoWindow;
 export default {
@@ -17,7 +20,7 @@ export default {
   },
   watch: {
     mapData: {
-      handler: function(val, oldVal) {
+      handler: function(val) {
         this.MapInit(val.data, val.type);
       },
       deep: true
@@ -37,9 +40,9 @@ export default {
       let allmarkerArr = Object.values(data);
       let markerkeys = Object.keys(data);
       for (let i = 0; i < allmarkerArr.length; i++) {
-        var lngs = allmarkerArr[i].toString().split(",");
+        let lngs = allmarkerArr[i].toString().split(",");
         if (lngs[0].length > 6 && lngs[1].length > 6 && lngs[4] === "1") {
-          var marker = new AMap.Marker({
+          let marker = new AMap.Marker({
             position: [lngs[0], lngs[1]],
             offset: new AMap.Pixel(-12, -12),
             zIndex: 101,
@@ -85,15 +88,15 @@ export default {
               ancher: [1, 1]
             }
           });
-          this.markers.forEach((key, index) => {
-            key.on("click", e => {
+          this.markers.forEach(key => {
+            key.on("click", () => {
               let pointerData = key.getExtData();
               console.log(pointerData);
               let point = pointerData.position.split(",");
               let position = new AMap.LngLat(point[0], point[1]);
               positionPicker.start(position);
               positionPicker.on("success", result => {
-                var info = [];
+                let info = [];
                 info.push(
                   `<div><div>${this.$t("positions.updateTime")}：${
                     pointerData.times
@@ -133,6 +136,6 @@ export default {
 <style lang="less" scoped>
 .positioned {
   width: 100%;
-  height: calc(100vh - 110px);
+  height: calc(100vh - 40px);
 }
 </style>

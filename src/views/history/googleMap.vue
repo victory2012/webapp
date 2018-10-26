@@ -193,7 +193,7 @@ export default {
             url:
               "https://maps.googleapis.com/maps/api/geocode/json?latlng=" +
               latLngData +
-              "&key=AIzaSyC8IXpNgfA7uD-Xb0jEqhkEdB7j3gbgOiE&fields=formatted_address",
+              "&key=AIzaSyAz6eHKxmBqalyW0LVFjs9mugr5t0PxvYI",
             async: true,
             success: function(data) {
               console.log(data);

@@ -7,11 +7,20 @@ module.exports = {
   mapError: '地图加载失败，请检查网络连接',
   responseCode: {
     timeOut: '登录超时，请重新登录',
-    hasdevice: '设备已存在',
-    notFindDevice: '设备未找到',
-    hasHost: '宿主已存在',
-    noHost: '宿主未找到'
+    // timeOut: 'Login time out, please try again later.',
+    sessionOut: '会话过期', // 1
+    accountExists: "账号已存在", // 1001
+    accountNotExist: "账号不存在", // 1002
+    accountOperation: "账号操作失败", // 1003
+    UnableDevice: '设备操作失败', // 4003
+    hasdevice: '设备已存在', // 4001
+    notFindDevice: '设备未找到', // 4002
+    hasHost: '宿主已存在', // 5001
+    noHost: '宿主未找到', // 5002
+    UnableBattery: '宿主操作失败', // 5003
+    UnableGecfence: '电子围栏操作失败' // 6023
   },
+  noData: "暂无数据",
   loginMsg: {
     userNameMsg: '请输入用户名',
     password: '请输入密码',
@@ -53,7 +62,7 @@ module.exports = {
   },
   positions: {
     title1: '设备列表',
-    title2: '在线电池列表',
+    title2: '电池列表',
     lookAll: '查看全部',
     track: '历史轨迹',
     onLine: '在线',
@@ -64,11 +73,13 @@ module.exports = {
     intersection: '路口',
     latLng: '坐标',
     address: '地址',
+    noDevice: '暂无设备, 请先注册设备',
     getAdressErr: "地址获取失败"
   },
   history: {
     startTime: '选择开始时间',
     endTime: '选择结束时间',
+    checkErr: '开始时间应小于结束时间',
     start: '开始',
     pause: '暂停',
     continue: '继续',
@@ -76,7 +87,8 @@ module.exports = {
     heatActive: '活动热区',
     TrackReplay: '轨迹回放',
     times: '时间',
-    batteryList: '电池列表'
+    batteryList: '电池列表',
+    noData: "此设备当前时间段内，暂无数据"
   },
   pageBtn: {
     previous: '上一页',
@@ -203,5 +215,12 @@ module.exports = {
     changeBtn: '修改密码',
     error: '请输入新密码',
     success: '修改成功'
+  },
+  googleAbno: {
+    return: '返回',
+    title: '查看设备当前位置',
+    OUT: 'OUT',
+    Geofence: '超出围栏点',
+    nowPosition: '当前实时位置'
   }
 };

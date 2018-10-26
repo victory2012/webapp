@@ -152,7 +152,7 @@ export default {
     position: absolute;
     top: ($baseHeader + 5px);
     right: 5px;
-    width: px2rem(80px);
+    width: px2rem(140px);
     height: 0;
     overflow: hidden;
     background: #ffffff;
@@ -167,7 +167,7 @@ export default {
       font-size: px2rem(12px);
       height: px2rem(40px);
       line-height: px2rem(40px);
-      text-align: center;
+      padding-left: 10px;
       border-bottom: 1px solid #e5e5e5;
       i {
         font-size: px2rem(14px);

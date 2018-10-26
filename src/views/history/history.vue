@@ -41,11 +41,15 @@
         <li v-for="(item, index) in pointerArr" :class="[ devicelabel == item.deviceId ? 'selected': '', devicelabel == item.batteryId ? 'selected': '' ]" :key="item.deviceId" @click="checkItem(item, index)">
           <p>{{index+1}}、{{item.batteryId}}</p>
         </li>
-        <li class="pages">
+        <!-- <li class="pages">
           <div @click="previous" :class="[previousBtn?'':'disable']">{{$t('pageBtn.previous')}}</div>
           <div @click="next" :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
-        </li>
+        </li> -->
       </ul>
+      <div class="pages">
+        <div @click="previous" :class="[previousBtn?'':'disable']">{{$t('pageBtn.previous')}}</div>
+        <div @click="next" :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
+      </div>
     </div>
   </div>
 </template>
@@ -148,13 +152,12 @@ export default {
             async: true,
             success: function(data) {
               console.log(data);
-              var site =
-                "坐标：" +
-                latLngData +
-                "<br />" +
-                "地址：" +
-                data.results[0].formatted_address;
-              var infowindow = new google.maps.InfoWindow({
+              let site = `${this.$t(
+                "history.latLng"
+              )}：${latLngData}<br />${this.$t("history.address")}：${
+                data.results[0].formatted_address
+              }`;
+              let infowindow = new google.maps.InfoWindow({
                 content: site
               });
               infowindow.open(map, localMaker); // 弹出信息提示窗口
@@ -165,13 +168,61 @@ export default {
           });
         });
       } catch (err) {
-        onError("地图加载失败，请检查网络连接");
+        onError(`${this.$t("mapError")}`);
       }
+    },
+    // 获取列表数据
+    getHisData() {
+      let pageObj = {
+        bindingStatus: "1",
+        pageNum: this.pageNum,
+        pageSize: 10
+      };
+      Indicator.open();
+      GetDeviceList(pageObj).then(res => {
+        console.log(res);
+        if (res.data && res.data.code === 0) {
+          Indicator.close();
+          let result = res.data.data.data;
+          this.total = res.data.data.totalPage;
+          this.batteryId = this.$route.query.batteryId;
+          this.pointerArr = [];
+          if (result.length > 0) {
+            this.naxtBtn = this.pageNum < this.total ? true : false;
+            this.previousBtn = this.pageNum === 1 ? false : true;
+            result.forEach(key => {
+              if (key.batteryId) {
+                if (this.batteryId && this.batteryId === key.batteryId) {
+                  this.queryDevice = key.deviceId; // 根据路由参数中的电池id 获取对应的设备id；
+                }
+                this.pointerArr.push(key);
+              }
+            });
+            let params = {
+              pushDateStart: timeFormatSort(this.starts),
+              pushDateEnd: timeFormatSort(this.endtime)
+            };
+            if (this.batteryId && this.pageNum === 1) {
+              this.devicelabel = this.batteryId;
+              params.batteryId = this.batteryId;
+              this.getData(params);
+            } else {
+              this.devicelabel = result[0].batteryId;
+              params.batteryId = result[0].batteryId;
+              this.queryDevice = result[0].deviceId;
+              this.getData(params);
+            }
+            // this.getTimeList(this.queryDevice);
+          } else {
+            // onWarn("暂无设备, 请先注册设备");
+          }
+        }
+      });
     },
     // 上一页
     previous() {
       if (this.pageNum > 1) {
-        Indicator.open();
+        // Indicator.open();
         this.pageNum = this.pageNum - 1;
         // this.markers && map.remove(this.markers);
         this.getHisData();
@@ -180,7 +231,7 @@ export default {
     // 下一页
     next() {
       if (this.pageNum < this.total) {
-        Indicator.open();
+        // Indicator.open();
         // this.markers && map.remove(this.markers);
         this.pageNum = this.pageNum + 1;
         this.getHisData();
@@ -227,15 +278,15 @@ export default {
     /* 时间确认按钮 */
     selectedDate() {
       if (!this.startpickerValue) {
-        onWarn("请选择开始时间");
+        onWarn(`${this.$t("history.startTime")}`);
         return;
       }
       if (!this.endpickerValue) {
-        onWarn("请选择结束时间");
+        onWarn(`${this.$t("history.endTime")}`);
         return;
       }
       if (new Date(this.startpickerValue) > new Date(this.endpickerValue)) {
-        onWarn("开始时间应小于结束时间");
+        onWarn(`${this.$t("history.checkErr")}`);
         return;
       }
       let opts = {
@@ -255,26 +306,18 @@ export default {
       //   this.getData(opts);
       // }
     },
-    pageChange() {
-      this.blockArr = [];
-      let pageObj = {
-        pageNum: this.pageNum,
-        pageSize: 10
-      };
-      this.getHisData(pageObj);
-    },
     /* 时间确认按钮 */
     selectedDate(date) {
       if (!this.starts) {
-        onWarn("请选择开始时间");
+        onWarn(`${this.$t("history.startTime")}`);
         return;
       }
       if (!this.endtime) {
-        onWarn("请选择结束时间");
+        onWarn(`${this.$t("history.endTime")}`);
         return;
       }
       if (Number(this.starts) > Number(this.endtime)) {
-        onWarn("开始时间应小于结束时间");
+        onWarn(`${this.$t("history.checkErr")}`);
         return;
       }
       let opts = {
@@ -315,7 +358,7 @@ export default {
               this.track();
             }
           } else {
-            onWarn("此设备当前时间段内，暂无数据");
+            onWarn(`${this.$t("history.noData")}`);
           }
         }
       });
@@ -351,48 +394,6 @@ export default {
       // heatmapData.set("gradient", gradient);
     },
 
-    // 获取列表数据
-    getHisData() {
-      let pageObj = {
-        pageNum: this.pageNum,
-        pageSize: 10
-      };
-      GetDeviceList(pageObj).then(res => {
-        if (res.data && res.data.code === 0) {
-          let result = res.data.data.data;
-          this.total = res.data.data.total;
-          this.batteryId = this.$route.query.batteryId;
-          this.pointerArr = [];
-          if (result.length > 0) {
-            result.forEach(key => {
-              if (key.batteryId) {
-                if (this.batteryId && this.batteryId === key.batteryId) {
-                  this.queryDevice = key.deviceId; // 根据路由参数中的电池id 获取对应的设备id；
-                }
-                this.pointerArr.push(key);
-              }
-            });
-            let params = {
-              pushDateStart: timeFormatSort(this.starts),
-              pushDateEnd: timeFormatSort(this.endtime)
-            };
-            if (this.batteryId && this.pageNum === 1) {
-              this.devicelabel = this.batteryId;
-              params.batteryId = this.batteryId;
-              this.getData(params);
-            } else {
-              this.devicelabel = result[0].batteryId;
-              params.batteryId = result[0].batteryId;
-              this.queryDevice = result[0].deviceId;
-              this.getData(params);
-            }
-            // this.getTimeList(this.queryDevice);
-          } else {
-            // onWarn("暂无设备, 请先注册设备");
-          }
-        }
-      });
-    },
     startMove() {
       this.actived = true;
       this.animateCircle(this.timeSeconds);
@@ -619,25 +620,27 @@ export default {
     }
     ul {
       width: 100%;
-      height: auto;
+      height: 350px;
+      overflow: auto;
       li {
         font-size: px2rem(12px);
         padding: px2rem(6px) px2rem(5px);
         position: relative;
         border-bottom: px2rem(1px) solid #f5f5f5;
         &.selected {
-          background: green;
+          background: #98dbff;
           color: #fff;
         }
-        &.pages {
-          display: flex;
-          div {
-            flex: 1;
-            text-align: center;
-            &.disable {
-              color: #d3d3d3;
-            }
-          }
+      }
+    }
+    .pages {
+      display: flex;
+      font-size: px2rem(12px);
+      div {
+        flex: 1;
+        text-align: center;
+        &.disable {
+          color: #d3d3d3;
         }
       }
     }

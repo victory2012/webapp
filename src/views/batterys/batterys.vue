@@ -18,6 +18,8 @@
             <span style="color:rgb(100, 213, 114)">{{count.monthTotal}}</span>
           </div>
         </li>
+      </ul>
+      <ul>
         <li>
           <div class="icon red">
             <i class="iconfont icon-offline"></i>
@@ -208,11 +210,13 @@ export default {
       display: flex;
       padding: px2rem(10px);
       justify-content: space-between;
-      border-bottom: 1px solid #f0f0f0;
+      // border-bottom: 1px solid #f0f0f0;
       li {
         font-size: px2rem(13px);
-        line-height: px2rem(24px);
-        flex: 0 0 px2rem(82px);
+        line-height: px2rem(35px);
+        flex: 0 0 48%;
+        // flex: 1;
+        // margin-right: 20px;
         display: flex;
         border: 1px solid #f0f0f0;
         border-radius: 3px;
@@ -222,8 +226,8 @@ export default {
           color: #5a5a5a;
           &.icon {
             text-align: center;
-            flex: 0 0 px2rem(24px);
-            height: px2rem(24px);
+            flex: 0 0 px2rem(35px);
+            height: px2rem(35px);
           }
           &.blue {
             background: rgb(45, 140, 240);

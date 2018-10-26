@@ -62,9 +62,8 @@ export default {
 
         if (res.data && res.data.code === 0) {
           this.userArr = res.data.data;
-          this.userArr.phoneNumber =
-            res.data.data.phoneNumber || this.$t("user.no");
-          this.userArr.email = res.data.data.email || this.$t("user.no");
+          this.userArr.phoneNumber = res.data.data.phoneNumber;
+          this.userArr.email = res.data.data.email;
         }
       });
     },

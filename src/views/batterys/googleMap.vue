@@ -68,7 +68,7 @@ export default {
         });
       } catch (err) {
         console.log(err);
-        onError("地图加载失败，请检查网络连接");
+        onError(`${this.$t("mapError")}`);
       }
     }
   }

@@ -11,9 +11,9 @@
 </template>
 
 <script>
-import menuList from "../../config/sideBarData";
-import bus from "../../utils/bus";
-import { getStorage, setStorage } from "../../utils/transition";
+import menuList from "@/config/sideBarData";
+import bus from "@/utils/bus";
+import { getStorage, setStorage } from "@/utils/transition";
 
 export default {
   data() {
@@ -92,10 +92,10 @@ export default {
     }
   }
   &.closeSidebar {
-    left: px2rem(-160px);
+    left: px2rem(-175px);
     right: none;
     .mask {
-      left: px2rem(-160px);
+      left: px2rem(-175px);
       right: none;
     }
   }
@@ -105,15 +105,15 @@ export default {
     bottom: 0;
     left: 0;
     height: 100%;
-    width: px2rem(160px);
+    width: px2rem(175px);
     background: #394750;
     z-index: 556;
     li {
       font-size: 0;
-      padding: 15px 20px;
+      padding: 15px 10px;
       a {
         display: block;
-        font-size: px2rem(14px);
+        font-size: px2rem(13px);
         color: rgb(191, 203, 217);
         &.router-link-active {
           color: rgb(32, 160, 255);

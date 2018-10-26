@@ -66,6 +66,7 @@ module.exports = {
     "no-underscore-dangle": 0,
     "no-new": 0,
     "vars-on-top": 0,
-    "space-before-function-paren": 0
+    "space-before-function-paren": 0,
+    "no-else-return": 0
   }
 }

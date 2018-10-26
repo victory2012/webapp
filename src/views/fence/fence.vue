@@ -17,7 +17,7 @@
 <script>
 /* eslint-disable */
 import google from "google";
-// import { Indicator } from "mint-ui";
+import { Indicator } from "mint-ui";
 import { getFence, addFence, delFence } from "../../api/index";
 import { onError, onWarn, onSuccess } from "../../utils/callback";
 
@@ -172,9 +172,10 @@ export default {
       google.maps.event.clearListeners(map, "click");
     },
     getData() {
+      Indicator.open();
       getFence().then(res => {
         console.log(res);
-
+        Indicator.close();
         if (res.data && res.data.code === 0) {
           if (bermudaTriangleArr.length > 0) {
             bermudaTriangleArr.forEach(key => {

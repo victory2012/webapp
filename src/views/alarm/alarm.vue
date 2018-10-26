@@ -134,7 +134,7 @@ export default {
               this.tableData.push(obj);
             });
           } else {
-            onError("暂无数据");
+            onError(`${this.$t("noData")}`);
           }
         }
       });
@@ -273,8 +273,9 @@ export default {
         flex: 1;
         color: #494848;
         line-height: px2rem(45px);
+        font-size: 13px;
         &.cons {
-          flex: 0 0 px2rem(160px);
+          flex: 0 0 px2rem(140px);
           color: #333;
           text-align: right;
         }
