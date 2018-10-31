@@ -161,24 +161,26 @@ export default {
     },
     LookRun(key) {
       if (!key.OLS) return;
-      // let userData = JSON.parse(getStorage("loginData"));
+      let userData = JSON.parse(localStorage.getItem("loginData"));
       let deviceId = key.deviceId;
       let titles = `${this.$t("menu.realposition")}`;
-      this.$router.push({
-        path: "position",
-        query: { deviceId: deviceId }
-      });
+
       bus.$emit("collapsed", {
         collapse: false,
         msg: titles
       });
       setStorage("projectTit", titles);
-      // if (userData.mapType === 1) {
-      //   this.$router.push({
-      //     path: "googlePos",
-      //     query: { deviceId: deviceId }
-      //   });
-      // }
+      if (userData.mapType === 1) {
+        this.$router.push({
+          path: "gogPosition",
+          query: { deviceId: deviceId }
+        });
+      } else {
+        this.$router.push({
+          path: "position",
+          query: { deviceId: deviceId }
+        });
+      }
     }
   }
 };

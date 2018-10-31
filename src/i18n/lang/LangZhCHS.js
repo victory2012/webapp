@@ -12,6 +12,7 @@ module.exports = {
     accountExists: "账号已存在", // 1001
     accountNotExist: "账号不存在", // 1002
     accountOperation: "账号操作失败", // 1003
+    accountPwdErr: "账户或密码错误", // 1004
     UnableDevice: '设备操作失败', // 4003
     hasdevice: '设备已存在', // 4001
     notFindDevice: '设备未找到', // 4002
@@ -52,7 +53,8 @@ module.exports = {
     batteryList: '电池列表',
     alarm: '告警数据',
     userManage: "用户管理",
-    device: '设备管理'
+    device: '设备管理',
+    policy: '电压阈值'
   },
   overview: {
     total: '全部',
@@ -74,12 +76,12 @@ module.exports = {
     latLng: '坐标',
     address: '地址',
     noDevice: '暂无设备, 请先注册设备',
-    getAdressErr: "地址获取失败"
+    getAdressErr: "地址获取失败",
+    voltage: '设备电压'
   },
   history: {
     startTime: '选择开始时间',
     endTime: '选择结束时间',
-    checkErr: '开始时间应小于结束时间',
     start: '开始',
     pause: '暂停',
     continue: '继续',
@@ -88,7 +90,17 @@ module.exports = {
     TrackReplay: '轨迹回放',
     times: '时间',
     batteryList: '电池列表',
-    noData: "此设备当前时间段内，暂无数据"
+    online: '上线',
+    offLine: '下线',
+    checkErr: '开始时间应小于结束时间',
+    noData: "此设备当前时间段内，暂无数据",
+    noDevice: '暂无设备, 请先注册设备',
+    latLng: '坐标',
+    address: '地址',
+    No: '第',
+    point: '点',
+    junction: '路口',
+    track: '轨迹'
   },
   pageBtn: {
     previous: '上一页',
@@ -222,5 +234,12 @@ module.exports = {
     OUT: 'OUT',
     Geofence: '超出围栏点',
     nowPosition: '当前实时位置'
+  },
+  policy: {
+    title: '电压告警值',
+    btns: '修改阈值',
+    placeholder: '请输入电压阈值',
+    success: '修改成功',
+    voltageCheck: '请输入数字'
   }
 };

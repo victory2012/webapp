@@ -58,6 +58,8 @@ function switchCode(code) {
       return Toast(`${i18n.t('responseCode.accountNotExist')}`);
     case 1003:
       return Toast(`${i18n.t('responseCode.accountOperation')}`);
+    case 1004: // 账户密码错误
+      return Toast(`${i18n.t('responseCode.accountPwdErr')}`);
     case 4003:
       return Toast(`${i18n.t('responseCode.UnableDevice')}`);
     case 4001:
@@ -72,8 +74,8 @@ function switchCode(code) {
       return Toast(`${i18n.t('responseCode.UnableBattery')}`);
     case 6023:
       return Toast(`${i18n.t('responseCode.UnableGecfence')}`);
-    case -1:
-      return Toast(`${i18n.t('responseCode.UnableGecfence')}`);
+      // case -1:
+      //   return Toast(`${i18n.t('responseCode.UnableGecfence')}`);
     default:
       break;
   }

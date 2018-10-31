@@ -141,10 +141,25 @@ export default {
     },
     alarmPos() {
       // 查看位置
-      this.$router.push({
-        path: "abnormal",
-        query: { grid: this.detailObj.grid, deviceId: this.detailObj.deviceId }
-      });
+
+      const loginData = JSON.parse(localStorage.getItem("loginData"));
+      if (loginData && loginData.mapType === 1) {
+        this.$router.push({
+          path: "gooAbno",
+          query: {
+            grid: this.detailObj.grid,
+            deviceId: this.detailObj.deviceId
+          }
+        });
+      } else {
+        this.$router.push({
+          path: "abnormal",
+          query: {
+            grid: this.detailObj.grid,
+            deviceId: this.detailObj.deviceId
+          }
+        });
+      }
     },
     Details(key) {
       this.showIt = true;
@@ -189,7 +204,7 @@ export default {
           flex: 0 0 px2rem(90px);
         }
         &.devices {
-          flex: 0 0 px2rem(108px);
+          flex: 0 0 px2rem(130px);
         }
       }
     }
@@ -232,7 +247,7 @@ export default {
         }
         &.devices {
           font-size: px2rem(12px);
-          flex: 0 0 px2rem(108px);
+          flex: 0 0 px2rem(130px);
         }
         p {
           font-size: px2rem(12px);

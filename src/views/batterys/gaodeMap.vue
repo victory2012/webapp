@@ -55,10 +55,11 @@ export default {
       }
     },
     init() {
-      // const lang = localStorage.getItem("locale") === "EN" ? "en" : "zh_cn";
+      const lang = localStorage.getItem("locale") === "en" ? "en" : "zh_cn";
       map = new AMap.Map("container", {
         resizeEnable: true,
-        zoom: 10
+        zoom: 10,
+        lang: lang
       });
     }
   }

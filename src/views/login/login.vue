@@ -12,10 +12,10 @@
       </div>
       <div class="form">
         <div class="account">
-          <mt-field type="text" :label="$t('loginMsg.accountPlace')" :placeholder="$t('loginMsg.userNameMsg')" v-model="loginForm.userName" :state="accountTip"></mt-field>
+          <mt-field type="text" :label="$t('loginMsg.accountPlace')" :placeholder="$t('loginMsg.userNameMsg')" v-model="loginForm.userName"></mt-field>
         </div>
         <div class="pwd">
-          <mt-field type="password" :label="$t('loginMsg.passwordPlace')" :placeholder="$t('loginMsg.password')" v-model="loginForm.password" :state="pwdTip"></mt-field>
+          <mt-field type="password" :label="$t('loginMsg.passwordPlace')" :placeholder="$t('loginMsg.password')" v-model="loginForm.password"></mt-field>
         </div>
         <div class="rem">
           <div>
@@ -75,7 +75,7 @@ export default {
     let locallanguage = localStorage.getItem("locale");
     // this.$i18n.locale = locallanguage || "CN";
     if (locallanguage) {
-      this.localLanguge = locallanguage === "CN" ? "中文" : "English";
+      this.localLanguge = locallanguage === "cn" ? "中文" : "English";
     } else {
       let currentLang = navigator.language; // 判断除IE外其他浏览器使用语言
       if (!currentLang) {
@@ -84,12 +84,12 @@ export default {
       }
       if (currentLang === "zh-CN") {
         this.localLanguge = "中文";
-        setStorage("locale", "CN");
-        this.$i18n.locale = "CN";
+        setStorage("locale", "cn");
+        this.$i18n.locale = "cn";
       } else {
         this.localLanguge = "English";
-        setStorage("locale", "EN");
-        this.$i18n.locale = "EN";
+        setStorage("locale", "en");
+        this.$i18n.locale = "en";
       }
     }
   },
@@ -97,14 +97,14 @@ export default {
     languageChange(str) {
       console.log("languageChange", str);
       if (str.id === "en") {
-        this.$i18n.locale = "EN";
-        setStorage("locale", "EN");
+        this.$i18n.locale = "en";
+        setStorage("locale", "en");
         this.localLanguge = "Language";
       } else {
         // this.langs = "en";
         this.localLanguge = "中文";
-        this.$i18n.locale = "CN";
-        setStorage("locale", "CN");
+        this.$i18n.locale = "cn";
+        setStorage("locale", "cn");
       }
     },
     // changLocalLang() {
@@ -143,7 +143,8 @@ export default {
         if (res.data && res.data.code === 0) {
           if (typeof localStorage === "object") {
             try {
-              let Data = JSON.stringify(res.data.data);
+              let result = res.data.data;
+              let Data = JSON.stringify(result);
               setStorage("loginData", Data);
               if (this.accountVal) {
                 setStorage("account", this.loginForm.userName);
@@ -151,6 +152,7 @@ export default {
               if (this.passwordVal) {
                 setStorage("password", this.loginForm.password);
               }
+              setStorage("mapType", result.mapType);
               this.$store.commit("LogInDate", Data);
               setStorage("projectTit", this.$t("menu.overview"));
               this.$router.push("/home");

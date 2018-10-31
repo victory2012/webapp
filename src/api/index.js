@@ -230,6 +230,10 @@ export function singleDeviceId(deviceId) {
   return http.post(`/device/${deviceId}/gps/get`);
 }
 
-/*
- * google地图获取街道信息
- */
+export function getPolicy() {
+  return http.post(`/event_policy/get`);
+}
+
+export function updatePolicy(param) {
+  return http.post(`/event_policy/update`, param);
+}

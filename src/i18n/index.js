@@ -6,12 +6,12 @@ import en from "./lang/LangEn";
 Vue.use(VueI18n);
 
 const messages = {
-  CN: zh,
-  EN: en
+  cn: zh,
+  en: en
 };
 
 const i18n = new VueI18n({
-  locale: localStorage.getItem("locale") || "CN",
+  locale: localStorage.getItem("locale") || "cn",
   // fallbackLocale: 'CN',
   messages
 });

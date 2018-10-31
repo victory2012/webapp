@@ -44,7 +44,7 @@
   </div>
 </template>
 <script>
-import { mapGetters } from "vuex";
+// import { mapGetters } from "vuex";
 import { Indicator } from "mint-ui";
 import { websockets, GetDeviceList, GetCount } from "../../api/index";
 import { onError, onWarn } from "../../utils/callback";
@@ -69,13 +69,13 @@ export default {
       limit: false,
       offLine: 0,
       markers: [],
-      mapType: "",
+      GETMAPTYPE: "",
       sendData: { api: "bind", param: [] }
     };
   },
-  computed: {
-    ...mapGetters(["GETMAPTYPE"])
-  },
+  // computed: {
+  //   ...mapGetters(["GETMAPTYPE"])
+  // },
   methods: {
     /* 获取统计数据 */
     getTocalsData() {
@@ -179,6 +179,7 @@ export default {
     }
   },
   mounted() {
+    this.GETMAPTYPE = localStorage.getItem("mapType");
     this.init();
   },
   beforeDestroy() {

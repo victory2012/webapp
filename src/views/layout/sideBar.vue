@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import menuList from "@/config/sideBarData";
+import { menuList, GoogleList } from "@/config/sideBarData";
 import bus from "@/utils/bus";
 import { getStorage, setStorage } from "@/utils/transition";
 
@@ -24,11 +24,23 @@ export default {
   },
   methods: {
     sideBarData() {
-      this.items = menuList();
       const loginData = JSON.parse(getStorage("loginData"));
-      if (loginData.userRole === "plat_super_admin") {
+      // const mapType = getStorage("mapType");
+      if (loginData && loginData.mapType === 1) {
+        this.items = GoogleList();
+      } else {
+        this.items = menuList();
+      }
+      if (loginData && loginData.enterpriseRole === "manufacturer") {
         this.items.push({
-          icon: "iconfont icon-device",
+          icon: "iconfont icon-data",
+          index: "policy",
+          title: "policy"
+        });
+      }
+      if (loginData && loginData.userRole === "plat_super_admin") {
+        this.items.push({
+          icon: "iconfont icon-blueberryuserset",
           index: "device",
           title: "device"
         });
@@ -36,6 +48,7 @@ export default {
       this.items.forEach(key => {
         key.title = this.$t(`menu.${key.title}`);
       });
+      console.log(this.items);
     },
 
     colseSideBar(item) {

@@ -13,10 +13,10 @@
     </div>
     <div class="btns" v-show="trajectory">
       <div class="btnInfo">
-        <mt-button :class="{'active': actived}" size="small" type="default" @click="startOnclick">
+        <mt-button :class="{'active': actived}" size="small" type="default" @click="startMove">
           <i class="iconfont icon-ic_song_next"></i>
         </mt-button>
-        <mt-button :class="{'active': actived === 'pause'}" size="small" type="default" @click="pauseOnclick">
+        <!-- <mt-button :class="{'active': actived === 'pause'}" size="small" type="default" @click="pauseOnclick">
           <i class="iconfont icon-artboard25copy"></i>
         </mt-button>
         <mt-button :class="{'active': actived === 'resume'}" size="small" type="default" @click="resumeOnclick">
@@ -24,14 +24,15 @@
         </mt-button>
         <mt-button :class="{'active': actived === 'stop'}" size="small" type="default" @click="stopOnclick">
           <i class="iconfont icon-stop"></i>
-        </mt-button>
+        </mt-button> -->
       </div>
       <div class="ranges">
         <span>{{timeSeconds}}s</span>
         <mt-range :min="1" :max="100" v-model="timeSeconds" @change="speedChange"></mt-range>
       </div>
     </div>
-    <div class="mapcontainer" id="mapcontainer"></div>
+
+    <div id="mapcontainer" class="mapcontainer"></div>
     <div class="batteryList" :class="[closed? 'closed': '']">
       <p @click="toggleList" class="controlBtn">
         <i :class="{'roted': !closed}"></i>
@@ -57,19 +58,21 @@
 import AMap from "AMap";
 import AMapUI from "AMapUI";
 import { Indicator, Range, DatetimePicker } from "mint-ui";
-import { GetTrajectory, GetDeviceList } from "../../api/index";
+import { GetTrajectory, GetDeviceList } from "@/api/index";
 import {
   timeFormatSort,
   trakTimeformat,
   yesTody,
   timeFormats
-} from "../../utils/transition";
-import { onWarn, onTimeOut, onError } from "../../utils/callback";
-let map;
-let navg;
-let heatmap;
-let pathSimplifierIns;
-let infoWindow;
+} from "@/utils/transition";
+import { onWarn, onTimeOut, onError } from "@/utils/callback";
+import jquery from "jquery";
+
+var map;
+let heatmapData;
+let line;
+let animate1;
+let pointArr = [];
 export default {
   components: {
     "mt-range": Range,
@@ -77,7 +80,7 @@ export default {
   },
   data() {
     return {
-      actived: "",
+      actived: false,
       naxtBtn: true,
       previousBtn: false,
       trajectory: false,
@@ -94,13 +97,18 @@ export default {
       chooseTime: [],
       pointerArr: [],
       closed: true,
-      toggleTip: "展开",
+      toggleTip: this.$t("toggleTip.open"),
       gridData: [],
       markerArr: [],
       alldistance: 0,
       timeSeconds: 50,
       pageNum: 1,
-      total: 10
+      total: 10,
+      localMakerArr: [],
+      markerPointer: {
+        sdPointer: [],
+        mapPointer: []
+      }
     };
   },
   mounted() {
@@ -108,26 +116,113 @@ export default {
   },
   methods: {
     init() {
-      const lang = localStorage.getItem("locale") === "en" ? "en" : "zh_cn";
-      map = new AMap.Map("mapcontainer", {
-        resizeEnable: true,
-        lang: lang,
-        zoom: 15
-      });
-      AMap.plugin(["AMap.Heatmap"], () => {
-        // 初始化heatmap对象
-        heatmap = new AMap.Heatmap(map, {
-          radius: 12, // 给定半径
-          opacity: [0, 1] // 透明度
+      try {
+        map = new google.maps.Map(document.getElementById("mapcontainer"), {
+          center: {
+            lat: 0,
+            lng: 0
+          },
+          zoom: 15
         });
-      });
+        this.getHisData();
+        // map.addListener("click", e => {
+        //   if (this.localMakerArr.length > 0) {
+        //     this.localMakerArr.forEach(key => {
+        //       key.setMap(null);
+        //     });
+        //   }
+        //   var latLngData =
+        //     e.latLng.lat().toFixed(6) + "," + e.latLng.lng().toFixed(6);
+        //   var localMaker = new google.maps.Marker({
+        //     position: e.latLng,
+        //     icon: {
+        //       path: google.maps.SymbolPath.CIRCLE,
+        //       scale: 3,
+        //       strokeColor: "red"
+        //     },
+        //     map: map
+        //   });
+        //   this.localMakerArr.push(localMaker);
+        //   // jquery.ajax({
+        //   //   type: "post",
+        //   //   url:
+        //   //     "https://maps.googleapis.com/maps/api/geocode/json?latlng=" +
+        //   //     latLngData +
+        //   //     "&key=AIzaSyC8IXpNgfA7uD-Xb0jEqhkEdB7j3gbgOiE&fields=formatted_address",
+        //   //   async: true,
+        //   //   success: function(data) {
+        //   //     console.log(data);
+        //   //     let site = `${this.$t(
+        //   //       "history.latLng"
+        //   //     )}：${latLngData}<br />${this.$t("history.address")}：${
+        //   //       data.results[0].formatted_address
+        //   //     }`;
+        //   //     let infowindow = new google.maps.InfoWindow({
+        //   //       content: site
+        //   //     });
+        //   //     infowindow.open(map, localMaker); // 弹出信息提示窗口
+        //   //     map.addListener("click", () => {
+        //   //       infowindow.close();
+        //   //     });
+        //   //   }
+        //   // });
+        // });
+      } catch (err) {
+        onError(`${this.$t("mapError")}`);
+      }
+    },
+    // 获取列表数据
+    getHisData() {
+      let pageObj = {
+        bindingStatus: "1",
+        pageNum: this.pageNum,
+        pageSize: 10
+      };
       Indicator.open();
-      this.getHisData();
+      GetDeviceList(pageObj).then(res => {
+        console.log(res);
+        if (res.data && res.data.code === 0) {
+          Indicator.close();
+          let result = res.data.data.data;
+          this.total = res.data.data.totalPage;
+          this.batteryId = this.$route.query.batteryId;
+          this.pointerArr = [];
+          if (result.length > 0) {
+            this.naxtBtn = this.pageNum < this.total ? true : false;
+            this.previousBtn = this.pageNum === 1 ? false : true;
+            result.forEach(key => {
+              if (key.batteryId) {
+                if (this.batteryId && this.batteryId === key.batteryId) {
+                  this.queryDevice = key.deviceId; // 根据路由参数中的电池id 获取对应的设备id；
+                }
+                this.pointerArr.push(key);
+              }
+            });
+            let params = {
+              pushDateStart: timeFormatSort(this.starts),
+              pushDateEnd: timeFormatSort(this.endtime)
+            };
+            if (this.batteryId && this.pageNum === 1) {
+              this.devicelabel = this.batteryId;
+              params.batteryId = this.batteryId;
+              this.getData(params);
+            } else {
+              this.devicelabel = result[0].batteryId;
+              params.batteryId = result[0].batteryId;
+              this.queryDevice = result[0].deviceId;
+              this.getData(params);
+            }
+            // this.getTimeList(this.queryDevice);
+          } else {
+            // onWarn("暂无设备, 请先注册设备");
+          }
+        }
+      });
     },
     // 上一页
     previous() {
       if (this.pageNum > 1) {
-        Indicator.open();
+        // Indicator.open();
         this.pageNum = this.pageNum - 1;
         // this.markers && map.remove(this.markers);
         this.getHisData();
@@ -136,7 +231,7 @@ export default {
     // 下一页
     next() {
       if (this.pageNum < this.total) {
-        Indicator.open();
+        // Indicator.open();
         // this.markers && map.remove(this.markers);
         this.pageNum = this.pageNum + 1;
         this.getHisData();
@@ -151,17 +246,22 @@ export default {
       this.$refs.endtime.open();
     },
     // 确认开始时间
-    StarttimeConfirm() {
+    StarttimeConfirm(value) {
+      console.log(value);
+      this.starts = timeFormats(value);
       this.selectedDate();
     },
     // 确认结束时间
-    endTimeConfirm() {
+    endTimeConfirm(value) {
+      this.endtime = timeFormats(value);
       this.selectedDate();
     },
     // 打开&&关闭列表
     toggleList() {
       this.closed = !this.closed;
-      // this.toggleTip = this.closed ? "展开" : "收起";
+      this.toggleTip = this.closed
+        ? this.$t("toggleTip.open")
+        : this.$t("toggleTip.close");
     },
     speedChange() {
       console.log("change", this.timeSeconds);
@@ -206,294 +306,203 @@ export default {
       //   this.getData(opts);
       // }
     },
+    /* 时间确认按钮 */
+    selectedDate(date) {
+      if (!this.starts) {
+        onWarn(`${this.$t("history.startTime")}`);
+        return;
+      }
+      if (!this.endtime) {
+        onWarn(`${this.$t("history.endTime")}`);
+        return;
+      }
+      if (Number(this.starts) > Number(this.endtime)) {
+        onWarn(`${this.$t("history.checkErr")}`);
+        return;
+      }
+      let opts = {
+        pushDateStart: timeFormatSort(this.starts),
+        pushDateEnd: timeFormatSort(this.endtime)
+      };
+      opts.batteryId = this.devicelabel;
+      // this.getTimeList(this.queryDevice);
+      this.clearMap();
+      this.getData(opts);
+    },
     /* 获取数据 */
     getData(params) {
+      Indicator.open();
       GetTrajectory(params).then(res => {
-        // console.log(res);
         Indicator.close();
-        if (res.data.code === 0) {
+
+        if (res.data && res.data.code === 0) {
           let result = res.data.data;
-          this.gridData = [];
+          // console.log(result);
           this.lineArr = [];
-          this.alldistance = 0; // 运动的总距离（米）
           if (result.length > 0) {
+            this.gridData = [];
             for (let i = 0; i < result.length; i++) {
-              let key = result[i];
-              var distance, p1, p2;
-              if (i < result.length - 1) {
-                p1 = new AMap.LngLat(key.longitude, key.latitude);
-                p2 = new AMap.LngLat(
-                  result[i + 1].longitude,
-                  result[i + 1].latitude
-                );
-                distance = Math.round(p1.distance(p2));
-              }
-              this.alldistance += distance;
-              let obj = {};
-              obj.lng = key.longitude;
-              obj.lat = key.latitude;
+              var key = result[i];
+              var obj = {};
               obj.pushTime = key.pushTime;
-              // obj.distance = key.distance;
-              // obj.distance = distance;
-              obj.count = 150;
-              this.lineArr.push([obj.lng, obj.lat, obj.pushTime]);
-              this.gridData.push(obj);
+              obj.ponter = new google.maps.LatLng(key.latitude, key.longitude);
+              this.lineArr.push(obj);
+              this.gridData.push(
+                new google.maps.LatLng(key.latitude, key.longitude)
+              );
             }
-            if (this.trajectory && pathSimplifierIns) {
-              pathSimplifierIns.setData();
-              this.track();
-            }
+            map.setCenter(this.gridData[0]);
             if (this.active) {
               this.heatmap();
-            }
-          } else {
-            if (pathSimplifierIns) {
-              pathSimplifierIns.setData();
+            } else {
               this.track();
             }
+          } else {
             onWarn(`${this.$t("history.noData")}`);
-            heatmap.hide();
           }
         }
       });
     },
     heatmap() {
-      if (this.markerArr.length > 0) {
-        map.remove(this.markerArr);
-      }
       this.trajectory = false;
       this.active = true;
-      map.setCenter([this.gridData[0].lng, this.gridData[0].lat]);
-      heatmap.setDataSet({
-        data: this.gridData // 热力图数据
+      this.clearMap();
+      heatmapData = new google.maps.visualization.HeatmapLayer({
+        data: this.gridData,
+        map: map,
+        radius: 10,
+        opacity: 1,
+        maxIntensity: 15,
+        dissipating: true,
+        gradient: [
+          "rgba(0, 0, 255, 0)",
+          "rgba(55, 55, 255, 1)",
+          "rgba(0, 255, 120, 1)",
+          "rgba(18, 255, 0, 1)",
+          "rgba(150, 255, 0, 1)",
+          "rgba(210, 255, 0, 1)",
+          "rgba(255, 228, 0, 1)",
+          "rgba(255, 216, 0, 1)",
+          "rgba(255, 132, 0, 1)",
+          "rgba(255, 72, 0, 1)",
+          "rgba(255, 48, 0, 1)",
+          "rgba(234, 86, 61, 1)",
+          "rgba(255, 36, 0, 1)",
+          "rgba(255, 0, 0, 1)"
+        ]
       });
-      heatmap.show();
-      pathSimplifierIns && pathSimplifierIns.hide();
+      // heatmapData.set("gradient", gradient);
     },
 
-    // 获取列表数据
-    getHisData() {
-      let pageObj = {
-        pageNum: this.pageNum,
-        pageSize: 10
-      };
-      GetDeviceList(pageObj).then(res => {
-        Indicator.close();
-
-        if (res.data.code === 0) {
-          let result = res.data.data.data;
-          this.total = res.data.data.totalPage;
-          if (this.total === this.pageNum) {
-            this.naxtBtn = false;
-          } else {
-            this.naxtBtn = true;
-          }
-          if (this.pageNum === 1) {
-            this.previousBtn = false;
-          } else {
-            this.previousBtn = true;
-          }
-          this.pointerArr = [];
-          if (result.length > 0) {
-            result.forEach(key => {
-              if (key.batteryId) {
-                this.pointerArr.push(key);
-              }
-            });
-            // this.total = res.data.data.total;
-            this.batteryId = this.$route.query.batteryId;
-            let params = {
-              pushDateStart: timeFormatSort(this.starts),
-              pushDateEnd: timeFormatSort(this.endtime)
-            };
-            if (this.batteryId && this.pageNum === 1) {
-              this.devicelabel = this.batteryId;
-              params.batteryId = this.batteryId;
-              this.getData(params);
-            } else {
-              this.devicelabel = result[0].batteryId;
-              params.batteryId = result[0].batteryId;
-              this.getData(params);
-            }
-          } else {
-            onWarn(`${this.$t("positions.noDevice")}`);
-          }
+    startMove() {
+      this.actived = true;
+      this.animateCircle(this.timeSeconds);
+    },
+    animateCircle(times) {
+      let seconds = times || 10;
+      var count = 0;
+      animate1 && clearInterval(animate1);
+      animate1 = window.setInterval(() => {
+        count = count + 5;
+        // console.log(count)
+        var icons = line.get("icons");
+        icons[0].offset = (count / this.gridData.length) * 100 + "%";
+        line.set("icons", icons);
+        console.log(count, icons[0].offset);
+        // // //终点停车
+        if (count >= this.gridData.length) {
+          clearInterval(animate1);
         }
-      });
+      }, seconds);
     },
     // 历史轨迹 轨迹配置
     track() {
       this.trajectory = true;
       this.active = false;
-      heatmap && heatmap.hide();
-      if (this.markerArr.length > 0) {
-        map.remove(this.markerArr);
-      }
-      if (this.lineArr.length < 1) {
-        return;
-      }
-      AMapUI.load(["ui/misc/PathSimplifier"], PathSimplifier => {
-        AMapUI.loadUI(["misc/PositionPicker"], PositionPicker => {
-          let positionPicker = new PositionPicker({
-            mode: "dragMarker",
-            map: map,
-            iconStyle: {
-              url: "../../static/img/iocna.png",
-              size: [1, 1],
-              ancher: [1, 1]
-            }
-          });
-          pathSimplifierIns = new PathSimplifier({
-            zIndex: 100,
-            map: map,
-            getHoverTitle: function(pathData, pathIndex, pointIndex) {
-              if (pointIndex >= 0) {
-                return `${self.$t("history.No")} ${pointIndex} ${self.$t(
-                  "history.point"
-                )}`;
-              }
+      this.actived = false;
+      this.clearMap();
+      line = new google.maps.Polyline({
+        icons: [
+          {
+            icon: {
+              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+              scale: 3,
+              strokeColor: "#1200ff"
             },
-            getPath: pathData => {
-              return pathData.path;
-            },
-            renderOptions: {
-              pathLineStyle: {
-                strokeStyle: "rgb(193,21,52)",
-                lineWidth: 6,
-                dirArrowStyle: true
-              },
-              keyPointTolerance: 10,
-              keyPointStyle: {
-                radius: 3,
-                fillStyle: "#20acff"
-              }
-            }
-          });
-          pathSimplifierIns.on("pointClick", (e, infos) => {
-            let pointIndex = infos.pointIndex;
-            let pathData = infos.pathData;
-            let point = pathData.path[pointIndex];
-            let position = new AMap.LngLat(point[0], point[1]);
-            positionPicker.start(position);
-            positionPicker.on("success", result => {
-              var info = [];
-              info.push(
-                `<div><div>${self.$t("history.times")}：${trakTimeformat(
-                  point[2]
-                )}</div>`
-              );
-              info.push(
-                `<div style="font-size:14px;">${self.$t("history.junction")} :${
-                  result.nearestJunction
-                }</div>`
-              );
-              info.push(
-                `<div style="font-size:14px;">${self.$t("history.address")} :${
-                  result.address
-                }</div></div>`
-              );
-              infoWindow = new AMap.InfoWindow({
-                content: info.join("<br/>") // 使用默认信息窗体框样式，显示信息内容
-              });
-              infoWindow.open(map, position);
-              map.on("click", () => {
-                infoWindow && infoWindow.close();
-              });
-            });
-          });
-          window.pathSimplifierIns = pathSimplifierIns;
-          pathSimplifierIns.setData([
-            {
-              name: this.$t("history.track"),
-              path: this.lineArr
-            }
-          ]);
-          let distance = Number(this.alldistance) / 1000; // 米转成千米
-          let times = Number(this.timeSeconds) / 3600; // 秒转成小时
-          let speeds = Math.ceil(distance / times); // 最终得到的速度是 km/h
-          navg = pathSimplifierIns.createPathNavigator(0, {
-            loop: true,
-            speed: speeds,
-            pathNavigatorStyle: {
-              width: 12,
-              height: 18,
-              strokeStyle: null,
-              fillStyle: null,
-              // 使用图片
-              content: PathSimplifier.Render.Canvas.getImageContent(
-                "../../../static/img/car.png"
-              )
-            }
-          });
-        });
-        let startPot = this.lineArr[0];
-        let endPot = this.lineArr[this.lineArr.length - 1];
-        let start = new AMap.Marker({
-          map: map,
-          position: [startPot[0], startPot[1]], // 基点位置  开始位置
-          icon: "https://webapi.amap.com/theme/v1.3/markers/n/start.png",
-          zIndex: 50
-        });
-        let end = new AMap.Marker({
-          map: map,
-          position: [endPot[0], endPot[1]], // 基点位置  结束位置
-          icon: "https://webapi.amap.com/theme/v1.3/markers/n/end.png",
-          zIndex: 10
-        });
-        this.markerArr.push(start);
-        this.markerArr.push(end);
+            offset: "0%"
+          }
+        ],
+        strokeColor: "#71253e",
+        map: map
       });
+      line.setPath(this.gridData);
+      let TimerMax = Math.ceil(this.gridData.length * 0.01);
+      if (TimerMax > this.max) {
+        this.max = Math.ceil(TimerMax * 2);
+      }
+      this.min = TimerMax;
+      this.timeSeconds = TimerMax;
+      let start = new google.maps.Marker({
+        position: this.gridData[0],
+        label: {
+          color: "#FFF",
+          text: "S"
+        },
+        map: map
+      });
+      let end = new google.maps.Marker({
+        position: this.gridData[this.gridData.length - 1],
+        label: {
+          color: "#FFF",
+          text: "E"
+        },
+        map: map
+      });
+      this.markerPointer.sdPointer.push(start);
+      this.markerPointer.sdPointer.push(end);
+    },
+    // 清除地图上的覆盖物
+    clearMap() {
+      animate1 && clearInterval(animate1);
+      heatmapData && heatmapData.setMap(null);
+      line && line.setMap(null);
+      if (this.markerPointer.sdPointer.length > 0) {
+        this.markerPointer.sdPointer.forEach(marker => {
+          marker.setMap(null);
+        });
+        this.markerPointer.sdPointer = [];
+      }
+      if (this.markerPointer.mapPointer.length > 0) {
+        this.markerPointer.mapPointer.forEach(marker => {
+          marker.setMap(null);
+        });
+        this.markerPointer.mapPointer = [];
+      }
+      if (this.localMakerArr.length > 0) {
+        this.localMakerArr.forEach(key => {
+          key.setMap(null);
+        });
+      }
     },
     // 列表点击事件
     checkItem(item) {
-      Indicator.open();
-      this.toggleList();
+      this.activePointer = [];
+      this.blockArr = [];
+      animate1 && clearInterval(animate1);
+      this.clearMap();
       let params = {
-        pushDateStart: timeFormatSort(this.startpickerValue),
-        pushDateEnd: timeFormatSort(this.endpickerValue)
+        pushDateStart: timeFormatSort(this.starts),
+        pushDateEnd: timeFormatSort(this.endtime)
       };
       params.batteryId = item.batteryId;
       this.devicelabel = item.batteryId;
+      this.queryDevice = item.deviceId;
       this.getData(params);
-    },
-    // 开始运动
-    startOnclick() {
-      this.actived = "start";
-      navg.start();
-    },
-    // 暂停运动
-    pauseOnclick() {
-      this.actived = "pause";
-      navg.pause();
-    },
-    // 继续运动
-    resumeOnclick() {
-      this.actived = "resume";
-      navg.resume();
-    },
-    // 停止运动
-    stopOnclick() {
-      this.actived = "stop";
-      navg.stop();
-      // map.clearMap();
-    },
-    /*
-    * heatmap：hide()          ---- 隐藏热力图
-    *          show()          ---- 显示热力图
-    * pathSimplifierIns： hide() ---- 隐藏轨迹
-    *                     show() ---- 显示轨迹
-    */
-    historyShow() {
-      pathSimplifierIns.show();
-      heatmap.hide();
-    },
-    heatShow() {
-      pathSimplifierIns.hide();
-      heatmap.show();
+      // this.getTimeList(this.queryDevice);
     }
   },
   beforeDestroy() {
-    map.destroy();
+    animate1 && clearInterval(animate1);
   }
 };
 </script>

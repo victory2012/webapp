@@ -10,6 +10,7 @@ module.exports = {
     accountExists: "This user account already exists.", // 账号已存在
     accountNotExist: "This user account does not exist.", // 账号不存在
     accountOperation: "Operation cannot be performed by current user account.", // 账号操作失败
+    accountPwdErr: "Account or password error", // 1004
     UnableDevice: 'Unable to operate on this device.', // 设备操作失败
     hasdevice: 'This device already exists.', // 设备已存在
     notFindDevice: 'This device was not found.', // 设备未找到
@@ -19,7 +20,7 @@ module.exports = {
     UnableGecfence: 'Unable to set up this geofence.' // 电子围栏操作失败
   },
   loginMsg: {
-    userNameMsg: 'Please enter user name.',
+    userNameMsg: 'Please enter user id.',
     password: 'Please enter password.',
     projectName: 'Battery Operation Management System',
     subProjectName: 'Battery Tracking Management System',
@@ -49,7 +50,8 @@ module.exports = {
     batteryList: 'Battery Profile',
     alarm: 'Battery Alarm',
     userManage: "User Management",
-    device: 'Device Management'
+    device: 'Device Management',
+    policy: 'Voltage Threshold'
   },
   overview: {
     total: 'All',
@@ -71,21 +73,32 @@ module.exports = {
     latLng: 'Coordinate',
     address: 'Address',
     noDevice: 'There is no corresponding device, please register first.',
-    getAdressErr: "Address acquisition failed."
+    getAdressErr: "Address acquisition failed.",
+    voltage: 'Voltage'
   },
   history: {
-    startTime: 'Please enter start time',
-    endTime: 'Please enter end time',
+    startTime: 'Please enter start time.',
+    endTime: 'Please enter end time.',
     start: 'Start',
     pause: 'Pause',
-    continue: 'Continue',
-    checkErr: 'Start time must before end time.',
+    continue: 'continue',
     stop: 'Stop',
     heatActive: 'Hot Zone',
     TrackReplay: 'Playback',
-    times: 'Duration',
-    batteryList: 'Device Profile',
+    times: 'Time',
+    batteryList: 'Battery Profiles',
+
+    online: 'Online',
+    offLine: 'Offline',
+    checkErr: 'Start time must before end time.',
     noData: "This device has no data during the current time period.",
+    noDevice: 'There is no corresponding device, please register first.',
+    latLng: 'Coordinate',
+    address: 'Address',
+    No: 'No',
+    point: 'point',
+    junction: 'Road junction',
+    track: 'Track'
   },
   pageBtn: {
     previous: 'Previous',
@@ -219,5 +232,12 @@ module.exports = {
     OUT: 'OUT',
     Geofence: 'Out of the Geofence.',
     nowPosition: 'Current Location'
+  },
+  policy: {
+    title: 'Voltage alarm value',
+    btns: 'Changed Threshold',
+    placeholder: 'Please enter voltage.',
+    success: 'Changed Successfully',
+    voltageCheck: 'Please enter number.'
   }
 };
