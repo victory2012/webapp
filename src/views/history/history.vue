@@ -94,7 +94,6 @@ export default {
       chooseTime: [],
       pointerArr: [],
       closed: true,
-      toggleTip: "展开",
       gridData: [],
       markerArr: [],
       alldistance: 0,
@@ -421,7 +420,7 @@ export default {
               fillStyle: null,
               // 使用图片
               content: PathSimplifier.Render.Canvas.getImageContent(
-                "../../../static/img/car.png"
+                "../../../static/img/0181102120349.png"
               )
             }
           });

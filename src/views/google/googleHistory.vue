@@ -214,7 +214,7 @@ export default {
             }
             // this.getTimeList(this.queryDevice);
           } else {
-            // onWarn("暂无设备, 请先注册设备");
+            onWarn(`${this.$t('positions.noDevice')}`);
           }
         }
       });

@@ -237,3 +237,7 @@ export function getPolicy() {
 export function updatePolicy(param) {
   return http.post(`/event_policy/update`, param);
 }
+/* 根据电池id和设备id 获取围栏 */
+export function getFenceById(params) {
+  return http.post(`/fence/get`, params);
+}

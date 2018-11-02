@@ -12,17 +12,37 @@
       <mt-button size="small" @click="ToAddFence" type="primary">{{$t('fence.addBtn')}}</mt-button>
       <mt-button size="small" @click="ToDeleteFence" type="danger">{{$t('fence.delBtn')}}</mt-button>
     </div>
+    <div class="batteryList" :class="[closed? 'closed': '']">
+      <div class="titles">{{$t('positions.title2')}}</div>
+      <p @click="toggleList" class="controlBtn">
+        <i :class="{'roted': !closed}"></i>
+      </p>
+      <ul>
+        <li v-for="(item, index) in pointerArr" :class="{'selected': chooseId === item.batteryId }" :key="item.deviceId" @click="checkItem(item)">
+          <p>{{index + 1}}、{{item.batteryId}}</p>
+        </li>
+      </ul>
+      <div class="pages">
+        <div @click="previous" :class="[previousBtn?'':'disable']">{{$t('pageBtn.previous')}}</div>
+        <div @click="next" :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
+      </div>
+    </div>
   </div>
 </template>
 <script>
 /* eslint-disable */
 import google from "google";
 import { Indicator } from "mint-ui";
-import { getFence, addFence, delFence } from "@/api/index";
+import {
+  getFence,
+  addFence,
+  delFence,
+  GetDeviceList,
+  getFenceById
+} from "@/api/index";
 import { onError, onWarn, onSuccess } from "@/utils/callback";
 
 let map;
-let markers = [];
 // let mouseTool;
 let bermudaTriangleArr = [];
 // let drawingManager = null;
@@ -30,7 +50,13 @@ let label = 1;
 export default {
   data() {
     return {
+      chooseId: "",
+      naxtBtn: false,
+      previousBtn: false,
       addFence: false,
+      pageNum: 1,
+      pointerArr: [],
+      closed: true,
       fenceId: "",
       markers: [],
       polygon: null,
@@ -38,12 +64,108 @@ export default {
     };
   },
   methods: {
+    init() {
+      try {
+        map = new google.maps.Map(document.getElementById("AddContainer"), {
+          center: {
+            lat: 0,
+            lng: 0
+          },
+          zoom: 15
+        });
+        this.getListData();
+      } catch (err) {
+        onError(this.$t("mapError"));
+      }
+    },
+    // 打开&&关闭列表
+    toggleList() {
+      this.closed = !this.closed;
+    },
+    checkItem(item) {
+      this.label = 1;
+      this.addFence = false;
+      this.cancelSetings();
+      this.goBack();
+      this.clickItme = item;
+      this.chooseId = this.clickItme.batteryId;
+      Indicator.open();
+      this.getFenceData({
+        batteryId: this.clickItme.batteryId,
+        deviceId: this.clickItme.deviceId
+      });
+    },
+    next() {
+      if (this.pageNum < this.total) {
+        this.pageNum = this.pageNum + 1;
+        this.getListData();
+      }
+    },
+    previous() {
+      if (this.pageNum > 1) {
+        this.pageNum = this.pageNum - 1;
+        this.getListData();
+      }
+    },
+    getListData() {
+      let pageObj = {
+        pageNum: this.pageNum,
+        pageSize: 10,
+        bindingStatus: 1
+      };
+      Indicator.open();
+      GetDeviceList(pageObj).then(res => {
+        console.log(res.data);
+        // Indicator.close();
+        if (res.data && res.data.code === 0) {
+          this.pointerArr = [];
+          let result = res.data.data;
+          this.total = result.totalPage;
+          console.log("this.total", this.total);
+          this.naxtBtn = this.pageNum < this.total ? true : false;
+          this.previousBtn = this.pageNum === 1 ? false : true;
+          this.pointerArr = [...result.data];
+          if (this.pointerArr.length > 0) {
+            this.clickItme = this.pointerArr[0];
+            this.chooseId = this.clickItme.batteryId;
+            this.getFenceData({
+              batteryId: this.clickItme.batteryId,
+              deviceId: this.clickItme.deviceId
+            });
+          }
+        }
+      });
+    },
+    getFenceData(data) {
+      getFenceById(data).then(res => {
+        console.log("getFenceById", res);
+        Indicator.close();
+        if (res.data && res.data.code === 0) {
+          if (bermudaTriangleArr.length > 0) {
+            bermudaTriangleArr.forEach(key => {
+              key.setMap(null);
+            });
+          }
+          let result = res.data.data;
+          if (result) {
+            this.hasFenced = true;
+            let gpsList = result.gpsList;
+            let id = result.id;
+            this.hasFence(gpsList, id);
+          } else {
+            this.hasFenced = false;
+            // this.buildFence();
+          }
+        }
+      });
+    },
     // 没有设置过围栏
     buildFence() {
       this.addFence = true;
       label = 1;
-      markers = [];
+      this.markers = [];
       this.fencePonter = "";
+      google.maps.event.clearListeners(map, "click");
       google.maps.event.addListener(map, "click", event => {
         console.log(event.latLng);
         console.log(event);
@@ -57,7 +179,7 @@ export default {
           .toFixed(6)},${event.latLng.lat().toFixed(6)};`;
         // str += `${event.latLng}`
         console.log(this.fencePonter);
-        markers.push(marker);
+        this.markers.push(marker);
         if (label > 10) {
           google.maps.event.clearListeners(map, "click");
         }
@@ -68,7 +190,6 @@ export default {
       this.addFence = false;
       let poi = gpsList.substring(0, gpsList.length - 1).split(";");
       let allPointers = [];
-
       let bounds = new google.maps.LatLngBounds();
       poi.forEach((res, index) => {
         let item = res.split(",");
@@ -77,8 +198,8 @@ export default {
         allPointers.push(arr);
       });
       map.fitBounds(bounds); // 自适应显示
-      let bermudaTriangle = new google.maps.Polygon({
-        paths: [allPointers],
+      var bermudaTriangle = new google.maps.Polygon({
+        paths: [...allPointers],
         strokeColor: "blue",
         strokeOpacity: 1,
         strokeWeight: 1,
@@ -87,8 +208,7 @@ export default {
       });
       bermudaTriangleArr.push(bermudaTriangle);
       bermudaTriangle.setMap(map);
-      bermudaTriangle.addListener("click", () => {
-        console.log("围栏id", id);
+      bermudaTriangle.addListener("click", e => {
         this.fenceId = id;
         bermudaTriangleArr.forEach(key => {
           key.setOptions({
@@ -103,9 +223,10 @@ export default {
     },
     // 确认设置 添加围栏
     doAddFence() {
-      let gpsObj = {};
-      // let str = "";
-      console.log(this.fencePonter);
+      let gpsObj = {
+        deviceId: this.clickItme.deviceId,
+        batteryId: this.clickItme.batteryId
+      };
       if (this.fencePonter.length > 0) {
         gpsObj.gpsList = this.fencePonter.substring(
           0,
@@ -116,15 +237,18 @@ export default {
 
           if (res.data && res.data.code === 0) {
             google.maps.event.clearListeners(map, "click");
-            if (markers.length > 0) {
-              markers.forEach(key => {
+            if (this.markers.length > 0) {
+              this.markers.forEach(key => {
                 key.setMap(null);
               });
-              markers = [];
+              this.markers = [];
             }
             // drawingManager.setDrawingMode(null);
             onSuccess(this.$t("fence.tipMsg.addSuccess"));
-            this.getData();
+            this.getFenceData({
+              batteryId: this.clickItme.batteryId,
+              deviceId: this.clickItme.deviceId
+            });
           }
         });
       } else {
@@ -135,11 +259,11 @@ export default {
     cancelSetings() {
       this.addFence = true;
       this.fencePonter = "";
-      if (markers.length > 0) {
-        markers.forEach(key => {
+      if (this.markers.length > 0) {
+        this.markers.forEach(key => {
           key.setMap(null);
         });
-        markers = [];
+        this.markers = [];
       }
       this.buildFence();
     },
@@ -154,7 +278,10 @@ export default {
 
         if (res.data && res.data.code === 0) {
           onSuccess(this.$t("fence.tipMsg.delSuccess"));
-          this.getData();
+          this.getFenceData({
+            batteryId: this.clickItme.batteryId,
+            deviceId: this.clickItme.deviceId
+          });
         }
       });
     },
@@ -162,56 +289,22 @@ export default {
     goBack() {
       this.addFence = false;
       this.fencePonter = "";
-      if (markers.length > 0) {
-        markers.forEach(key => {
+      if (this.markers.length > 0) {
+        this.markers.forEach(key => {
           key.setMap(null);
         });
-        markers = [];
+        this.markers = [];
       }
       label = 1;
       google.maps.event.clearListeners(map, "click");
-    },
-    getData() {
-      Indicator.open();
-      getFence().then(res => {
-        console.log(res);
-        Indicator.close();
-        if (res.data && res.data.code === 0) {
-          if (bermudaTriangleArr.length > 0) {
-            bermudaTriangleArr.forEach(key => {
-              key.setMap(null);
-            });
-          }
-          if (res.data.data.length > 0) {
-            let result = res.data.data;
-            result.forEach(key => {
-              let gpsList = key.gpsList;
-              let id = key.id;
-              this.hasFence(gpsList, id);
-            });
-          } else {
-            this.buildFence();
-          }
-        }
+      this.getFenceData({
+        batteryId: this.clickItme.batteryId,
+        deviceId: this.clickItme.deviceId
       });
     },
     ToAddFence() {
       this.addFence = true;
       this.buildFence();
-    },
-    init() {
-      try {
-        map = new google.maps.Map(document.getElementById("AddContainer"), {
-          center: {
-            lat: 0,
-            lng: 0
-          },
-          zoom: 15
-        });
-        this.getData();
-      } catch (err) {
-        onError(this.$t("mapError"));
-      }
     }
   },
   mounted() {
@@ -229,6 +322,104 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
+  .batteryList {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    width: px2rem(150px);
+    z-index: 99;
+    background: #fafafa;
+    padding: px2rem(6px) px2rem(4px);
+    height: auto;
+    line-height: px2rem(24px);
+    transition: all 0.3s ease-in;
+    .titles {
+      font-size: 14px;
+      text-align: center;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    &.closed {
+      right: px2rem(-150px);
+    }
+    p {
+      font-size: px2rem(14px);
+      margin-bottom: 5px;
+    }
+    .controlBtn {
+      width: 26px;
+      position: absolute;
+      top: 0;
+      height: 26px;
+      left: -27px;
+      background-color: #fff;
+      padding: 4px;
+      border-radius: 2px;
+      border: 1px solid #e5e5e5;
+
+      i {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: url("../../assets/open.png") no-repeat;
+        background-size: 16px;
+        &.roted {
+          transform: rotate(180deg);
+        }
+      }
+    }
+    ul {
+      width: 100%;
+      background: #ffffff;
+      height: 350px;
+      overflow: scroll;
+      li {
+        font-size: px2rem(12px);
+        padding: px2rem(6px) px2rem(5px);
+        position: relative;
+        border-bottom: px2rem(1px) solid #f5f5f5;
+        &.selected {
+          background: #c7ebff;
+          color: #fff;
+          .onlines {
+            color: #ffffff !important;
+          }
+        }
+        .badges {
+          padding-left: 15px;
+          position: relative;
+          // width: 80%;
+          .hisBad {
+            border: 1px solid #f0f0f0;
+            border-radius: 5px;
+            padding: 4px;
+            background: #98dbff;
+            color: #ffffff;
+          }
+          .onlines {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            font-size: px2rem(12px);
+            color: red;
+            &.off {
+              color: gray;
+            }
+          }
+        }
+      }
+    }
+    .pages {
+      display: flex;
+      div {
+        font-size: px2rem(12px);
+        flex: 1;
+        text-align: center;
+        &.disable {
+          color: #d3d3d3;
+        }
+      }
+    }
+  }
   .fenceContainer {
     width: 100%;
     height: 100%;
@@ -236,7 +427,7 @@ export default {
   .HandleBtn {
     position: absolute;
     top: 5px;
-    right: 5px;
+    left: 5px;
     font-size: 0;
     button {
       font-size: px2rem(14px);
