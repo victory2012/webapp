@@ -7,10 +7,10 @@ module.exports = {
   responseCode: {
     timeOut: 'Login time out, please try again later.',
     sessionOut: 'Current session has expired.', // 会话过期
-    accountExists: "This user account already exists.", // 账号已存在
-    accountNotExist: "This user account does not exist.", // 账号不存在
-    accountOperation: "Operation cannot be performed by current user account.", // 账号操作失败
-    accountPwdErr: "Account or password error", // 1004
+    accountExists: 'This user account already exists.', // 账号已存在
+    accountNotExist: 'This user account does not exist.', // 账号不存在
+    accountOperation: 'Operation cannot be performed by current user account.', // 账号操作失败
+    accountPwdErr: 'Account or password error', // 1004
     UnableDevice: 'Unable to operate on this device.', // 设备操作失败
     hasdevice: 'This device already exists.', // 设备已存在
     notFindDevice: 'This device was not found.', // 设备未找到
@@ -31,7 +31,7 @@ module.exports = {
     loginBtn: 'Login',
     errorMsg: {
       account: 'The entry field of user id cannot be empty.',
-      password: 'The entry field of passwod cannot be empty.',
+      password: 'The entry field of passwod cannot be empty.'
     },
     tips: 'Tips',
     sortage: 'Please close the seamless mode before you visit.'
@@ -41,7 +41,8 @@ module.exports = {
     pasword: 'Change Password',
     logOut: 'Logout'
   },
-  menu: { // 菜单列表
+  menu: {
+    // 菜单列表
     overview: 'Overview',
     realposition: 'Real Location',
     history: 'Motion Track',
@@ -49,7 +50,7 @@ module.exports = {
     batteryManage: 'Battery Management',
     batteryList: 'Battery Profile',
     alarm: 'Battery Alarm',
-    userManage: "User Management",
+    userManage: 'User Management',
     device: 'Device Management',
     policy: 'Voltage Threshold'
   },
@@ -73,7 +74,7 @@ module.exports = {
     latLng: 'Coordinate',
     address: 'Address',
     noDevice: 'There is no corresponding device, please register first.',
-    getAdressErr: "Address acquisition failed.",
+    getAdressErr: 'Address acquisition failed.',
     voltage: 'Voltage'
   },
   history: {
@@ -91,7 +92,7 @@ module.exports = {
     online: 'Online',
     offLine: 'Offline',
     checkErr: 'Start time must before end time.',
-    noData: "This device has no data during the current time period.",
+    noData: 'This device has no data during the current time period.',
     noDevice: 'There is no corresponding device, please register first.',
     latLng: 'Coordinate',
     address: 'Address',
@@ -102,14 +103,14 @@ module.exports = {
   },
   pageBtn: {
     previous: 'Previous',
-    next: 'Next',
+    next: 'Next'
   },
   toggleTip: {
-    open: "Open",
+    open: 'Open',
     close: 'Close'
   },
   timeBtn: {
-    cancle: "Cancel",
+    cancle: 'Cancel',
     sure: 'Submit'
   },
   fence: {
@@ -123,6 +124,7 @@ module.exports = {
       delSuccess: 'Removed successfully.',
       addPointer: 'Please select the geofence point on map.',
       selectToDel: 'Please choose the geofence you want remove on map.',
+      less: 'Select 3 points at least.'
     }
   },
   batteryList: {
@@ -203,7 +205,7 @@ module.exports = {
     Customer: 'Customer',
     createBtn: 'Create',
     noData: 'Empty',
-    errorTip: "Please enter device id.",
+    errorTip: 'Please enter device id.',
     success: 'Created successfully.'
   },
   user: {

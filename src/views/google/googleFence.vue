@@ -1,30 +1,50 @@
 <template>
   <div class="outer-box">
-    <div id="AddContainer" class="fenceContainer"></div>
-    <div class="HandleBtn" v-if="addFence">
+    <div id="AddContainer"
+      class="fenceContainer"></div>
+    <div class="HandleBtn"
+      v-if="addFence">
       <!-- <span class="Tiptext">Tip：选择区域后，鼠标右键结束选区</span> -->
-      <mt-button size="small" @click="cancelSetings" type="default">{{$t('fence.cancelSeting')}}</mt-button>
-      <mt-button size="small" @click="doAddFence" type="primary">{{$t('fence.sureSeting')}}</mt-button>
-      <mt-button size="small" @click="goBack" type="danger">{{$t('fence.back')}}</mt-button>
+      <mt-button size="small"
+        @click="cancelSetings"
+        type="default">{{$t('fence.cancelSeting')}}</mt-button>
+      <mt-button size="small"
+        @click="doAddFence"
+        type="primary">{{$t('fence.sureSeting')}}</mt-button>
+      <mt-button size="small"
+        @click="goBack"
+        type="danger">{{$t('fence.back')}}</mt-button>
       <p></p>
     </div>
-    <div class="HandleBtn" v-else>
-      <mt-button size="small" @click="ToAddFence" type="primary">{{$t('fence.addBtn')}}</mt-button>
-      <mt-button size="small" @click="ToDeleteFence" type="danger">{{$t('fence.delBtn')}}</mt-button>
+    <div class="HandleBtn"
+      v-else>
+      <mt-button size="small"
+        @click="ToAddFence"
+        type="primary">{{$t('fence.addBtn')}}</mt-button>
+      <mt-button size="small"
+        @click="ToDeleteFence"
+        type="danger">{{$t('fence.delBtn')}}</mt-button>
     </div>
-    <div class="batteryList" :class="[closed? 'closed': '']">
+    <div class="batteryList"
+      :class="[closed? 'closed': '']">
       <div class="titles">{{$t('positions.title2')}}</div>
-      <p @click="toggleList" class="controlBtn">
+      <p @click="toggleList"
+        class="controlBtn">
         <i :class="{'roted': !closed}"></i>
       </p>
       <ul>
-        <li v-for="(item, index) in pointerArr" :class="{'selected': chooseId === item.batteryId }" :key="item.deviceId" @click="checkItem(item)">
+        <li v-for="(item, index) in pointerArr"
+          :class="{'selected': chooseId === item.batteryId }"
+          :key="item.deviceId"
+          @click="checkItem(item)">
           <p>{{index + 1}}、{{item.batteryId}}</p>
         </li>
       </ul>
       <div class="pages">
-        <div @click="previous" :class="[previousBtn?'':'disable']">{{$t('pageBtn.previous')}}</div>
-        <div @click="next" :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
+        <div @click="previous"
+          :class="[previousBtn?'':'disable']">{{$t('pageBtn.previous')}}</div>
+        <div @click="next"
+          :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
       </div>
     </div>
   </div>
@@ -48,7 +68,7 @@ let bermudaTriangleArr = [];
 // let drawingManager = null;
 let label = 1;
 export default {
-  data() {
+  data () {
     return {
       chooseId: "",
       naxtBtn: false,
@@ -64,7 +84,7 @@ export default {
     };
   },
   methods: {
-    init() {
+    init () {
       try {
         map = new google.maps.Map(document.getElementById("AddContainer"), {
           center: {
@@ -79,10 +99,10 @@ export default {
       }
     },
     // 打开&&关闭列表
-    toggleList() {
+    toggleList () {
       this.closed = !this.closed;
     },
-    checkItem(item) {
+    checkItem (item) {
       this.label = 1;
       this.addFence = false;
       this.cancelSetings();
@@ -95,19 +115,19 @@ export default {
         deviceId: this.clickItme.deviceId
       });
     },
-    next() {
+    next () {
       if (this.pageNum < this.total) {
         this.pageNum = this.pageNum + 1;
         this.getListData();
       }
     },
-    previous() {
+    previous () {
       if (this.pageNum > 1) {
         this.pageNum = this.pageNum - 1;
         this.getListData();
       }
     },
-    getListData() {
+    getListData () {
       let pageObj = {
         pageNum: this.pageNum,
         pageSize: 10,
@@ -136,7 +156,7 @@ export default {
         }
       });
     },
-    getFenceData(data) {
+    getFenceData (data) {
       getFenceById(data).then(res => {
         console.log("getFenceById", res);
         Indicator.close();
@@ -160,7 +180,7 @@ export default {
       });
     },
     // 没有设置过围栏
-    buildFence() {
+    buildFence () {
       this.addFence = true;
       label = 1;
       this.markers = [];
@@ -186,7 +206,7 @@ export default {
       });
     },
     // 已经添加了围栏，根据围栏坐标 画出围栏
-    hasFence(gpsList, id) {
+    hasFence (gpsList, id) {
       this.addFence = false;
       let poi = gpsList.substring(0, gpsList.length - 1).split(";");
       let allPointers = [];
@@ -222,41 +242,43 @@ export default {
       });
     },
     // 确认设置 添加围栏
-    doAddFence() {
+    doAddFence () {
+      if (!this.fencePonter) {
+        onError(`${this.$t("fence.tipMsg.addPointer")}`);
+        return;
+      }
+      let gpsList = this.fencePonter.substring(0, this.fencePonter.length - 1);
+      let pointer = gpsList.split(';');
+      if (pointer.length < 3) {
+        onError(`${this.$t("fence.tipMsg.less")}`);
+        return;
+      }
       let gpsObj = {
         deviceId: this.clickItme.deviceId,
-        batteryId: this.clickItme.batteryId
+        batteryId: this.clickItme.batteryId,
+        gpsList: gpsList
       };
-      if (this.fencePonter.length > 0) {
-        gpsObj.gpsList = this.fencePonter.substring(
-          0,
-          this.fencePonter.length - 1
-        );
-        addFence(gpsObj).then(res => {
-          console.log(res);
-
-          if (res.data && res.data.code === 0) {
-            google.maps.event.clearListeners(map, "click");
-            if (this.markers.length > 0) {
-              this.markers.forEach(key => {
-                key.setMap(null);
-              });
-              this.markers = [];
-            }
-            // drawingManager.setDrawingMode(null);
-            onSuccess(this.$t("fence.tipMsg.addSuccess"));
-            this.getFenceData({
-              batteryId: this.clickItme.batteryId,
-              deviceId: this.clickItme.deviceId
+      addFence(gpsObj).then(res => {
+        console.log(res);
+        if (res.data && res.data.code === 0) {
+          google.maps.event.clearListeners(map, "click");
+          if (this.markers.length > 0) {
+            this.markers.forEach(key => {
+              key.setMap(null);
             });
+            this.markers = [];
           }
-        });
-      } else {
-        onError(this.$t("fence.tipMsg.addPointer"));
-      }
+          // drawingManager.setDrawingMode(null);
+          onSuccess(this.$t("fence.tipMsg.addSuccess"));
+          this.getFenceData({
+            batteryId: this.clickItme.batteryId,
+            deviceId: this.clickItme.deviceId
+          });
+        }
+      });
     },
     /* 取消设置 */
-    cancelSetings() {
+    cancelSetings () {
       this.addFence = true;
       this.fencePonter = "";
       if (this.markers.length > 0) {
@@ -268,7 +290,7 @@ export default {
       this.buildFence();
     },
     /* 删除围栏 */
-    ToDeleteFence() {
+    ToDeleteFence () {
       if (!this.fenceId) {
         onWarn(this.$t("fence.tipMsg.selectToDel"));
         return;
@@ -286,7 +308,7 @@ export default {
       });
     },
     /* goBack 返回 */
-    goBack() {
+    goBack () {
       this.addFence = false;
       this.fencePonter = "";
       if (this.markers.length > 0) {
@@ -302,19 +324,19 @@ export default {
         deviceId: this.clickItme.deviceId
       });
     },
-    ToAddFence() {
+    ToAddFence () {
       this.addFence = true;
       this.buildFence();
     }
   },
-  mounted() {
+  mounted () {
     this.init();
   }
 };
 </script>
 
 <style lang="scss" scoped>
-@import url("../../common/style/index.scss");
+@import url('../../common/style/index.scss');
 
 .outer-box {
   position: absolute;
@@ -360,7 +382,7 @@ export default {
         width: 100%;
         height: 100%;
         display: block;
-        background: url("../../assets/open.png") no-repeat;
+        background: url('../../assets/open.png') no-repeat;
         background-size: 16px;
         &.roted {
           transform: rotate(180deg);

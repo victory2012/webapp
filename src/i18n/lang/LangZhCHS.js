@@ -9,10 +9,10 @@ module.exports = {
     timeOut: '登录超时，请重新登录',
     // timeOut: 'Login time out, please try again later.',
     sessionOut: '会话过期', // 1
-    accountExists: "账号已存在", // 1001
-    accountNotExist: "账号不存在", // 1002
-    accountOperation: "账号操作失败", // 1003
-    accountPwdErr: "账户或密码错误", // 1004
+    accountExists: '账号已存在', // 1001
+    accountNotExist: '账号不存在', // 1002
+    accountOperation: '账号操作失败', // 1003
+    accountPwdErr: '账户或密码错误', // 1004
     UnableDevice: '设备操作失败', // 4003
     hasdevice: '设备已存在', // 4001
     notFindDevice: '设备未找到', // 4002
@@ -21,7 +21,7 @@ module.exports = {
     UnableBattery: '宿主操作失败', // 5003
     UnableGecfence: '电子围栏操作失败' // 6023
   },
-  noData: "暂无数据",
+  noData: '暂无数据',
   loginMsg: {
     userNameMsg: '请输入用户名',
     password: '请输入密码',
@@ -34,7 +34,7 @@ module.exports = {
     loginBtn: '登录',
     errorMsg: {
       account: '账户不能为空',
-      password: '密码不能为空',
+      password: '密码不能为空'
     },
     tips: '提示',
     sortage: '请关闭无痕模式后，在访问'
@@ -44,7 +44,8 @@ module.exports = {
     pasword: '修改密码',
     logOut: '退出登录'
   },
-  menu: { // 菜单列表
+  menu: {
+    // 菜单列表
     overview: '电池总览',
     realposition: '实时位置',
     history: '历史轨迹',
@@ -52,7 +53,7 @@ module.exports = {
     batteryManage: '电池管理',
     batteryList: '电池列表',
     alarm: '告警数据',
-    userManage: "用户管理",
+    userManage: '用户管理',
     device: '设备管理',
     policy: '电压阈值'
   },
@@ -76,7 +77,7 @@ module.exports = {
     latLng: '坐标',
     address: '地址',
     noDevice: '暂无设备, 请先注册设备',
-    getAdressErr: "地址获取失败",
+    getAdressErr: '地址获取失败',
     voltage: '设备电压'
   },
   history: {
@@ -93,7 +94,7 @@ module.exports = {
     online: '上线',
     offLine: '下线',
     checkErr: '开始时间应小于结束时间',
-    noData: "此设备当前时间段内，暂无数据",
+    noData: '此设备当前时间段内，暂无数据',
     noDevice: '暂无设备, 请先注册设备',
     latLng: '坐标',
     address: '地址',
@@ -104,14 +105,14 @@ module.exports = {
   },
   pageBtn: {
     previous: '上一页',
-    next: '下一页',
+    next: '下一页'
   },
   toggleTip: {
-    open: "展开",
+    open: '展开',
     close: '收起'
   },
   timeBtn: {
-    cancle: "取消",
+    cancle: '取消',
     sure: '确定'
   },
   fence: {
@@ -125,6 +126,7 @@ module.exports = {
       delSuccess: '删除成功',
       addPointer: '请选区围栏点',
       selectToDel: '请点击要删除的围栏',
+      less: '最少选取3个点'
     }
   },
   batteryList: {
@@ -205,7 +207,7 @@ module.exports = {
     Customer: '客户',
     createBtn: '创建设备',
     noData: '暂无数据',
-    errorTip: "请填写设备编号",
+    errorTip: '请填写设备编号',
     success: '创建成功'
   },
   user: {
