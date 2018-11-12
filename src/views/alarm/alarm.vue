@@ -124,6 +124,7 @@ export default {
               let resultTime = key.alarmedTime.toString().split(" ");
               // obj.last = timeFormats(resultTime);
               obj.alarmedTime = key.alarmedTime;
+              obj.efence = key.efence;
               obj.hhmmss = resultTime[1];
               obj.yymmdd = resultTime[0];
               obj.batteryId = key.batteryId; // 电池id
@@ -141,22 +142,24 @@ export default {
     },
     alarmPos() {
       // 查看位置
-
+      let { grid, deviceId, efence } = this.detailObj;
       const loginData = JSON.parse(localStorage.getItem("loginData"));
       if (loginData && loginData.mapType === 1) {
         this.$router.push({
           path: "gooAbno",
           query: {
-            grid: this.detailObj.grid,
-            deviceId: this.detailObj.deviceId
+            grid: grid,
+            deviceId: deviceId,
+            efence
           }
         });
       } else {
         this.$router.push({
           path: "abnormal",
           query: {
-            grid: this.detailObj.grid,
-            deviceId: this.detailObj.deviceId
+            grid: grid,
+            deviceId: deviceId,
+            efence
           }
         });
       }

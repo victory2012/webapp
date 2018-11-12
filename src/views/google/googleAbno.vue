@@ -16,11 +16,13 @@ import { getFence, websockets, singleDeviceId } from "@/api/index";
 import { onTimeOut, onError } from "@/utils/callback";
 
 let map;
-let grid;
+
 let pointerObj = {};
 export default {
   data() {
     return {
+      grid: "",
+      efence: "",
       json: "",
       fenceId: "",
       polygon: null,
@@ -84,8 +86,8 @@ export default {
           },
           zoom: 15
         });
-        if (grid) {
-          let point = grid.split(";");
+        if (this.grid) {
+          let point = this.grid.split(";");
           let outPointer = new google.maps.LatLng(point[1], point[0]);
           map.setCenter(outPointer);
           new google.maps.Marker({
@@ -95,7 +97,9 @@ export default {
             map: map
           });
         }
-        this.getData();
+        if (this.efence) {
+          this.hasFence(this.efence);
+        }
       } catch (err) {
         onError(`${this.$t("mapError")}`);
       }
@@ -182,7 +186,8 @@ export default {
     }
   },
   mounted() {
-    grid = this.$route.query.grid;
+    this.grid = this.$route.query.grid;
+    this.efence = this.$route.query.efence;
     this.init();
   },
   beforeDestroy() {

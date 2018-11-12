@@ -2,9 +2,9 @@
   <div class="outer-box">
     <div id="AddContainer" class="fenceContainer"></div>
     <div class="HandleBtn">
-      <mt-button size="small" @click="goBack" type="primary">返回</mt-button>
+      <mt-button size="small" @click="goBack" type="primary">{{$t('googleAbno.return')}}</mt-button>
     </div>
-    <div class="localPosition" @click="localPosition" title="查看设备当前位置">
+    <div class="localPosition" @click="localPosition" :title="$t('googleAbno.title')">
       <img src="../../../static/img/local_normal.png" alt="">
     </div>
   </div>
@@ -15,12 +15,13 @@ import AMap from "AMap";
 import { getFence, websockets, singleDeviceId } from "../../api/index";
 import { onTimeOut, onWarn, onError } from "../../utils/callback";
 let map;
-let grid;
 let polygonArr = [];
 let pointerObj = {};
 export default {
   data() {
     return {
+      grid: "",
+      efence: "",
       json: "",
       fenceId: "",
       polygon: null,
@@ -30,7 +31,7 @@ export default {
   },
   methods: {
     // 已经添加了围栏，根据围栏坐标 画出围栏
-    hasFence(gpsList, id) {
+    hasFence(gpsList) {
       let poi = gpsList.split(";");
       let allPointers = [];
       poi.forEach(res => {
@@ -45,36 +46,12 @@ export default {
         strokeWeight: 2,
         fillColor: "#f5deb3",
         fillOpacity: 0.6,
-        extData: id,
+        // extData: id,
         cursor: "pointer"
       });
       polygons.setPath(allPointers);
       polygonArr.push(polygons);
-      polygons.on("click", e => {
-        console.log("e", e);
-        if (polygonArr.length > 0) {
-          polygonArr.forEach(key => {
-            // console.log("key", key);
-            key.setOptions({
-              strokeColor: "#0000ff",
-              fillColor: "#f5deb3",
-              fillOpacity: 0.6,
-              cursor: "pointer"
-            });
-            if (e.target.getExtData() === key.G.extData) {
-              this.polygon = key;
-            }
-          });
-        }
-        e.target.setOptions({
-          strokeColor: "#0000ff",
-          fillColor: "red",
-          fillOpacity: 0.6
-        });
-        this.fenceId = e.target.getExtData();
-        console.log(e.target.getExtData());
-        // console.log(e.target.getPath());
-      });
+
       map.setFitView(); // 地图自适应
     },
     /* goBack 返回 */
@@ -85,9 +62,6 @@ export default {
     },
     getData() {
       getFence().then(res => {
-        if (res.data.code === 1) {
-          onTimeOut(this.$router);
-        }
         if (res.data.code === 0) {
           if (res.data.data.length > 0) {
             let result = res.data.data;
@@ -99,14 +73,11 @@ export default {
             });
           }
         }
-        if (res.data.code === -1) {
-          onError(res.data.msg);
-        }
       });
     },
     init() {
-      if (grid) {
-        let point = grid.split(";");
+      if (this.grid) {
+        let point = this.grid.split(";");
         map = new AMap.Map("AddContainer", {
           center: [point[0], point[1]],
           resizeEnable: true,
@@ -118,7 +89,7 @@ export default {
           position: new AMap.LngLat(point[0], point[1]),
           icon: "http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
           label: {
-            content: "超出围栏点",
+            content: `${this.$t("googleAbno.Geofence")}`,
             offset: new AMap.Pixel(20, 20)
           }
         });
@@ -128,7 +99,9 @@ export default {
           zoom: 5
         });
       }
-      this.getData();
+      if (this.efence) {
+        this.hasFence(this.efence);
+      }
     },
     mapInit(obj) {
       let allmarkerArr = Object.values(obj);
@@ -146,39 +119,27 @@ export default {
         });
         marker.setLabel({
           offset: new AMap.Pixel(20, 20),
-          content: "当前实时位置"
+          content: `${this.$t("googleAbno.nowPosition")}`
         });
         this.markers.push(marker);
       });
     },
     localPosition() {
       let NowDeviceId = this.$route.query.deviceId;
-      singleDeviceId(NowDeviceId)
-        .then(res => {
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
+      singleDeviceId(NowDeviceId).then(res => {
+        if (res.data.code === 0) {
+          let result = res.data.data;
+          console.log(result);
+          if (result) {
+            pointerObj[result.deviceId] = `${result.longitude},${
+              result.latitude
+            }`;
+            this.sendData.param.push(result.deviceId);
+            this.mapInit(pointerObj);
+            this.sockets(JSON.stringify(this.sendData));
           }
-          if (res.data.code === 0) {
-            let result = res.data.data;
-            console.log(result);
-            if (result) {
-              pointerObj[result.deviceId] = `${result.longitude},${
-                result.latitude
-              }`;
-              this.sendData.param.push(result.deviceId);
-              this.mapInit(pointerObj);
-              this.sockets(JSON.stringify(this.sendData));
-            } else {
-              onWarn("暂无设备, 请先注册设备");
-            }
-          }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
-        })
-        .catch(() => {
-          onError("服务器请求超时，请稍后重试");
-        });
+        }
+      });
     },
     sockets(sendData) {
       websockets(ws => {
@@ -203,7 +164,7 @@ export default {
         };
         ws.onerror = () => {
           console.log("onerror...");
-          onError("服务器繁忙，请稍后重试。");
+          onError(`${this.$t("connectErr")}`);
           this.over();
         };
         this.over = () => {
@@ -213,7 +174,8 @@ export default {
     }
   },
   mounted() {
-    grid = this.$route.query.grid;
+    this.grid = this.$route.query.grid;
+    this.efence = this.$route.query.efence;
     this.init();
   },
   beforeDestroy() {
