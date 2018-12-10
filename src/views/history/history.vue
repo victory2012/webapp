@@ -4,37 +4,64 @@
     <div class="control">
       <input :value="starts" type="text" @click="openStartPicker" readonly>~
       <input :value="endtime" type="text" @click="openEndPicker" readonly>
-      <mt-datetime-picker ref="starts" :cancelText="$t('timeBtn.cancle')" :confirmText="$t('timeBtn.sure')" type="datetime" @confirm="StarttimeConfirm" v-model="startpickerValue">
-      </mt-datetime-picker>
-      <mt-datetime-picker ref="endtime" :cancelText="$t('timeBtn.cancle')" :confirmText="$t('timeBtn.sure')" type="datetime" @confirm="endTimeConfirm" v-model="endpickerValue">
-      </mt-datetime-picker>
-      <mt-button v-show="trajectory" size="small" type="danger" @click="heatmap">{{$t('history.heatActive')}}</mt-button>
-      <mt-button v-show="!trajectory" size="small" type="primary" @click="track">{{$t('history.TrackReplay')}}</mt-button>
+      <button @click="selectedDate" class="queryBtn">{{$t('history.query')}}</button>
     </div>
-    <div class="btns" v-show="trajectory">
+    <div class="toogleType">
+      <mt-button v-show="trajectory" size="small" type="danger" @click="showHeatMap">{{$t('history.heatActive')}}</mt-button>
+      <mt-button v-show="!trajectory" size="small" type="primary" @click="showTrack">{{$t('history.TrackReplay')}}</mt-button>
+      <mt-button v-show="trajectory" :class="{'active': actived}" size="small" type="default" @click="startOnclick">
+        <i class="iconfont icon-ic_song_next"></i>
+      </mt-button>
+      <mt-button v-show="trajectory" :class="{'active': actived === 'pause'}" size="small" type="default" @click="pauseOnclick">
+        <i class="iconfont icon-artboard25copy"></i>
+      </mt-button>
+      <mt-button v-show="trajectory" :class="{'active': actived === 'resume'}" size="small" type="default" @click="resumeOnclick">
+        <i class="iconfont icon-icons-resume_button"></i>
+      </mt-button>
+      <mt-button v-show="trajectory" :class="{'active': actived === 'stop'}" size="small" type="default" @click="stopOnclick">
+        <i class="iconfont icon-stop"></i>
+      </mt-button>
+    </div>
+    <!-- <div class="btns"
+      v-show="trajectory">
       <div class="btnInfo">
-        <mt-button :class="{'active': actived}" size="small" type="default" @click="startOnclick">
+        <mt-button :class="{'active': actived}"
+          size="small"
+          type="default"
+          @click="startOnclick">
           <i class="iconfont icon-ic_song_next"></i>
         </mt-button>
-        <mt-button :class="{'active': actived === 'pause'}" size="small" type="default" @click="pauseOnclick">
+        <mt-button :class="{'active': actived === 'pause'}"
+          size="small"
+          type="default"
+          @click="pauseOnclick">
           <i class="iconfont icon-artboard25copy"></i>
         </mt-button>
-        <mt-button :class="{'active': actived === 'resume'}" size="small" type="default" @click="resumeOnclick">
+        <mt-button :class="{'active': actived === 'resume'}"
+          size="small"
+          type="default"
+          @click="resumeOnclick">
           <i class="iconfont icon-icons-resume_button"></i>
         </mt-button>
-        <mt-button :class="{'active': actived === 'stop'}" size="small" type="default" @click="stopOnclick">
+        <mt-button :class="{'active': actived === 'stop'}"
+          size="small"
+          type="default"
+          @click="stopOnclick">
           <i class="iconfont icon-stop"></i>
         </mt-button>
       </div>
       <div class="ranges">
         <span>{{timeSeconds}}s</span>
-        <mt-range :min="1" :max="100" v-model="timeSeconds" @change="speedChange"></mt-range>
+        <mt-range :min="1"
+          :max="100"
+          v-model="timeSeconds"
+          @change="speedChange"></mt-range>
       </div>
-    </div>
+    </div> -->
     <div class="mapcontainer" id="mapcontainer"></div>
-    <div class="batteryList" :class="[closed? 'closed': '']">
+    <div class="batteryList" :class="{'closed': GETHistoryList}">
       <p @click="toggleList" class="controlBtn">
-        <i :class="{'roted': !closed}"></i>
+        <i :class="{'roted': !GETHistoryList}"></i>
       </p>
       <ul>
         <li v-for="(item, index) in pointerArr" :class="[ devicelabel == item.deviceId ? 'selected': '', devicelabel == item.batteryId ? 'selected': '' ]" :key="item.deviceId" @click="checkItem(item, index)">
@@ -50,10 +77,15 @@
         <div @click="next" :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
       </div>
     </div>
+    <mt-datetime-picker ref="starts" :cancelText="$t('timeBtn.cancle')" :confirmText="$t('timeBtn.sure')" type="datetime" @confirm="StarttimeConfirm" v-model="startpickerValue">
+    </mt-datetime-picker>
+    <mt-datetime-picker ref="endtime" :cancelText="$t('timeBtn.cancle')" :confirmText="$t('timeBtn.sure')" type="datetime" @confirm="endTimeConfirm" v-model="endpickerValue">
+    </mt-datetime-picker>
   </div>
 </template>
 <script>
 /* eslint-disable */
+import { mapGetters } from 'vuex';
 import AMap from "AMap";
 import AMapUI from "AMapUI";
 import { Indicator, Range, DatetimePicker } from "mint-ui";
@@ -64,7 +96,7 @@ import {
   yesTody,
   timeFormats
 } from "../../utils/transition";
-import { onWarn, onTimeOut, onError } from "../../utils/callback";
+import { onWarn } from "../../utils/callback";
 let map;
 let navg;
 let heatmap;
@@ -75,13 +107,12 @@ export default {
     "mt-range": Range,
     "mt-datetime-picker": DatetimePicker
   },
-  data() {
+  data () {
     return {
       actived: "",
       naxtBtn: true,
       previousBtn: false,
       trajectory: false,
-      active: true,
       navg: null,
       time: "",
       map: null,
@@ -102,11 +133,14 @@ export default {
       total: 10
     };
   },
-  mounted() {
+  computed: {
+    ...mapGetters(['GETHistoryList'])
+  },
+  mounted () {
     this.init();
   },
   methods: {
-    init() {
+    init () {
       const lang = localStorage.getItem("locale") === "en" ? "en" : "zh_cn";
       map = new AMap.Map("mapcontainer", {
         resizeEnable: true,
@@ -124,7 +158,7 @@ export default {
       this.getHisData();
     },
     // 上一页
-    previous() {
+    previous () {
       if (this.pageNum > 1) {
         Indicator.open();
         this.pageNum = this.pageNum - 1;
@@ -133,7 +167,7 @@ export default {
       }
     },
     // 下一页
-    next() {
+    next () {
       if (this.pageNum < this.total) {
         Indicator.open();
         // this.markers && map.remove(this.markers);
@@ -142,28 +176,27 @@ export default {
       }
     },
     // 选择开始时间
-    openStartPicker() {
+    openStartPicker () {
       this.$refs.starts.open();
     },
     // 选择结束时间
-    openEndPicker() {
+    openEndPicker () {
       this.$refs.endtime.open();
     },
     // 确认开始时间
-    StarttimeConfirm() {
-      this.selectedDate();
+    StarttimeConfirm () {
+      this.starts = timeFormats(this.startpickerValue);
     },
     // 确认结束时间
-    endTimeConfirm() {
-      this.selectedDate();
+    endTimeConfirm () {
+      this.endtime = timeFormats(this.endpickerValue);
     },
     // 打开&&关闭列表
-    toggleList() {
-      this.closed = !this.closed;
-      // this.toggleTip = this.closed ? "展开" : "收起";
+    toggleList () {
+      // this.closed = !this.closed;
+      this.$store.commit('setHistory', !this.GETHistoryList);
     },
-    speedChange() {
-      console.log("change", this.timeSeconds);
+    speedChange () {
       if (this.timeSeconds < 1) {
         this.timeSeconds = 1;
       }
@@ -175,7 +208,7 @@ export default {
       }
     },
     /* 时间确认按钮 */
-    selectedDate() {
+    selectedDate () {
       if (!this.startpickerValue) {
         onWarn(`${this.$t("history.startTime")}`);
         return;
@@ -184,29 +217,28 @@ export default {
         onWarn(`${this.$t("history.endTime")}`);
         return;
       }
-      if (new Date(this.startpickerValue) > new Date(this.endpickerValue)) {
+      const startTime = new Date(this.startpickerValue).getTime();
+      const endTime = new Date(this.endpickerValue).getTime();
+      if (startTime > endTime) {
         onWarn(`${this.$t("history.checkErr")}`);
         return;
       }
+      // if (endTime - startTime > 86400000) {
+      //   onWarn(`${this.$t("history.timeErr")}`);
+      //   return;
+      // }
       let opts = {
         pushDateStart: timeFormatSort(this.startpickerValue),
         pushDateEnd: timeFormatSort(this.endpickerValue)
       };
       opts.batteryId = this.devicelabel;
-      this.starts = timeFormats(this.startpickerValue);
-      this.endtime = timeFormats(this.endpickerValue);
+      // this.starts = timeFormats(this.startpickerValue);
+      // this.endtime = timeFormats(this.endpickerValue);
       Indicator.open();
       this.getData(opts);
-      // if (this.deviceId && this.pageNum === 1) {
-      //   opts.deviceId = this.devicelabel;
-      //   this.getData(opts);
-      // } else {
-      //   opts.batteryId = this.devicelabel;
-      //   this.getData(opts);
-      // }
     },
     /* 获取数据 */
-    getData(params) {
+    getData (params) {
       GetTrajectory(params).then(res => {
         // console.log(res);
         Indicator.close();
@@ -218,6 +250,7 @@ export default {
           if (result.length > 0) {
             for (let i = 0; i < result.length; i++) {
               let key = result[i];
+              // console.log(key);
               var distance, p1, p2;
               if (i < result.length - 1) {
                 p1 = new AMap.LngLat(key.longitude, key.latitude);
@@ -235,14 +268,15 @@ export default {
               // obj.distance = key.distance;
               // obj.distance = distance;
               obj.count = 150;
-              this.lineArr.push([obj.lng, obj.lat, obj.pushTime]);
-              this.gridData.push(obj);
+              if (Math.abs(Number(obj.lng)) > 1 && Math.abs(Number(obj.lat)) > 1) {
+                this.lineArr.push([obj.lng, obj.lat, obj.pushTime]);
+                this.gridData.push(obj);
+              }
             }
-            if (this.trajectory && pathSimplifierIns) {
+            if (this.trajectory) {
               pathSimplifierIns.setData();
               this.track();
-            }
-            if (this.active) {
+            } else {
               this.heatmap();
             }
           } else {
@@ -256,12 +290,21 @@ export default {
         }
       });
     },
-    heatmap() {
+    showHeatMap () {
+      this.trajectory = false;
+      this.heatmap()
+    },
+    showTrack () {
+      this.trajectory = true;
+      this.track()
+    },
+    heatmap () {
       if (this.markerArr.length > 0) {
         map.remove(this.markerArr);
       }
-      this.trajectory = false;
-      this.active = true;
+      if (this.gridData.length === 0) {
+        return
+      }
       map.setCenter([this.gridData[0].lng, this.gridData[0].lat]);
       heatmap.setDataSet({
         data: this.gridData // 热力图数据
@@ -271,14 +314,14 @@ export default {
     },
 
     // 获取列表数据
-    getHisData() {
+    getHisData () {
       let pageObj = {
+        bindingStatus: "1",
         pageNum: this.pageNum,
         pageSize: 10
       };
       GetDeviceList(pageObj).then(res => {
         Indicator.close();
-
         if (res.data.code === 0) {
           let result = res.data.data.data;
           this.total = res.data.data.totalPage;
@@ -310,8 +353,8 @@ export default {
               params.batteryId = this.batteryId;
               this.getData(params);
             } else {
-              this.devicelabel = result[0].batteryId;
-              params.batteryId = result[0].batteryId;
+              this.devicelabel = this.pointerArr[0].batteryId;
+              params.batteryId = this.pointerArr[0].batteryId;
               this.getData(params);
             }
           } else {
@@ -321,9 +364,7 @@ export default {
       });
     },
     // 历史轨迹 轨迹配置
-    track() {
-      this.trajectory = true;
-      this.active = false;
+    track () {
       heatmap && heatmap.hide();
       if (this.markerArr.length > 0) {
         map.remove(this.markerArr);
@@ -345,7 +386,7 @@ export default {
           pathSimplifierIns = new PathSimplifier({
             zIndex: 100,
             map: map,
-            getHoverTitle: function(pathData, pathIndex, pointIndex) {
+            getHoverTitle: function (pathData, pathIndex, pointIndex) {
               if (pointIndex >= 0) {
                 return `${self.$t("history.No")} ${pointIndex} ${self.$t(
                   "history.point"
@@ -383,12 +424,12 @@ export default {
               );
               info.push(
                 `<div style="font-size:14px;">${self.$t("history.junction")} :${
-                  result.nearestJunction
+                result.nearestJunction
                 }</div>`
               );
               info.push(
                 `<div style="font-size:14px;">${self.$t("history.address")} :${
-                  result.address
+                result.address
                 }</div></div>`
               );
               infoWindow = new AMap.InfoWindow({
@@ -444,7 +485,7 @@ export default {
       });
     },
     // 列表点击事件
-    checkItem(item) {
+    checkItem (item) {
       Indicator.open();
       this.toggleList();
       let params = {
@@ -456,22 +497,22 @@ export default {
       this.getData(params);
     },
     // 开始运动
-    startOnclick() {
+    startOnclick () {
       this.actived = "start";
       navg.start();
     },
     // 暂停运动
-    pauseOnclick() {
+    pauseOnclick () {
       this.actived = "pause";
       navg.pause();
     },
     // 继续运动
-    resumeOnclick() {
+    resumeOnclick () {
       this.actived = "resume";
       navg.resume();
     },
     // 停止运动
-    stopOnclick() {
+    stopOnclick () {
       this.actived = "stop";
       navg.stop();
       // map.clearMap();
@@ -482,16 +523,16 @@ export default {
     * pathSimplifierIns： hide() ---- 隐藏轨迹
     *                     show() ---- 显示轨迹
     */
-    historyShow() {
+    historyShow () {
       pathSimplifierIns.show();
       heatmap.hide();
     },
-    heatShow() {
+    heatShow () {
       pathSimplifierIns.hide();
       heatmap.show();
     }
   },
-  beforeDestroy() {
+  beforeDestroy () {
     map.destroy();
   }
 };
@@ -537,6 +578,30 @@ export default {
       width: 35%;
       color: #333;
       text-align: center;
+    }
+    .queryBtn {
+      background: #ecf5ff;
+      border: 1px solid #b3d8ff;
+      color: #409eff;
+      padding: 4px 10px;
+      line-height: 18px;
+      font-size: 14px;
+      border-radius: 5px;
+      margin-left: 5px;
+    }
+  }
+  .toogleType {
+    position: absolute;
+    left: 0;
+    top: 40px;
+    width: 100%;
+    height: 37px;
+    z-index: 10;
+    font-size: 0;
+    padding-top: 5px;
+    padding-left: 5px;
+    button {
+      margin-right: 5px;
     }
   }
   .btns {
@@ -590,12 +655,13 @@ export default {
       width: 26px;
       position: absolute;
       top: 0;
-      height: 26px;
+      height: 36px;
+      padding: 10px 4px;
       left: -27px;
       background-color: #fff;
-      padding: 4px;
-      border-radius: 2px;
-      border: 1px solid #e5e5e5;
+      // padding: 4px;
+      border-radius: 4px;
+      border: 1px solid #b3d8ff;
 
       i {
         width: 100%;

@@ -1,36 +1,37 @@
 <template>
-  <div id="container" class="mapWarrp"></div>
+  <div id="container"
+    class="mapWarrp"></div>
 </template>
 <script>
 /* eslint-disable */
 import AMap from "AMap";
-import { onTimeOut, onError, onWarn } from "../../utils/callback";
+import { onError, onWarn } from "../../utils/callback";
 let map;
 export default {
   props: {
     propData: {
       type: Object,
-      default: () => {}
+      default: () => { }
     }
   },
-  data() {
+  data () {
     return {
       markers: []
     };
   },
   watch: {
     propData: {
-      handler: function(val) {
+      handler: function (val) {
         this.mapInit(val.data, val.type);
       },
       deep: true
     }
   },
-  mounted() {
+  mounted () {
     this.init();
   },
   methods: {
-    mapInit(obj, type) {
+    mapInit (obj, type) {
       if (this.markers.length > 0) {
         map.remove(this.markers);
       }
@@ -54,7 +55,7 @@ export default {
         map.setFitView(); // 地图自适应
       }
     },
-    init() {
+    init () {
       const lang = localStorage.getItem("locale") === "en" ? "en" : "zh_cn";
       map = new AMap.Map("container", {
         resizeEnable: true,

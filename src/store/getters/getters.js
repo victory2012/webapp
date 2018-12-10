@@ -1,6 +1,5 @@
 export default {
   enterpriseName(state) {
-    console.log(state);
     if (state.loginData) {
       return JSON.parse(state.loginData).enterpriseName;
     }
@@ -17,5 +16,23 @@ export default {
       return JSON.parse(state.loginData).mapType;
     }
     return '';
+  },
+  GETprojectName(state) {
+    return state.projectName;
+  },
+  GETcollapse(state) {
+    return state.collapse;
+  },
+  GETuserInfo(state) {
+    return state.showIt;
+  },
+  GETrealList(state) {
+    return state.realList;
+  },
+  GETHistoryList(state) {
+    return state.historyList;
+  },
+  GETfenceList(state) {
+    return state.fenceList;
   }
 };

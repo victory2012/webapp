@@ -1,46 +1,51 @@
-import Axios from "axios";
-import {
-  Toast
-} from 'mint-ui';
-import i18n from "../i18n";
+import Axios from 'axios';
+import { Toast } from 'mint-ui';
+import router from '../router';
+import i18n from '../i18n';
 
-console.log("i18n======>", i18n.t('internetErr'));
 // let BaseUrl = "http://192.168.1.135:8181";
-const BaseUrl = "http://47.98.232.46:8181";
+const BaseUrl = 'http://47.98.232.46:8181';
 
 Axios.defaults.withCredentials = true; // 让ajax携带cookie
 
-Axios.interceptors.request.use(config => {
-  // 这里的config包含每次请求的内容
-  // config.headers['Access-Control-Allow-Headers'] = '*';
-  // let token = sessionStorage.getItem('token');
-  // if (token) {
-  //   config.headers.token = `${token}`;
-  // }
-  config.withCredentials = true;
-  return config;
-}, err => {
-  return Promise.reject(err);
-});
+Axios.interceptors.request.use(
+  config => {
+    // 这里的config包含每次请求的内容
+    // config.headers['Access-Control-Allow-Headers'] = '*';
+    // let token = sessionStorage.getItem('token');
+    // if (token) {
+    //   config.headers.token = `${token}`;
+    // }
+    config.withCredentials = true;
+    return config;
+  },
+  err => {
+    return Promise.reject(err);
+  }
+);
 
-Axios.interceptors.response.use(response => {
-  return response;
-}, error => {
-  return Promise.resolve(error.response);
-});
+Axios.interceptors.response.use(
+  response => {
+    return response;
+  },
+  error => {
+    return Promise.resolve(error.response);
+  }
+);
 
 function checkStatus(response) {
   // 如果http状态码正常，则直接返回数据
-
-  if (response && (response.status === 200 || response.status === 304 || response.status === 400)) {
+  if (
+    response &&
+    (response.status === 200 ||
+      response.status === 304 ||
+      response.status === 400)
+  ) {
     return response;
   } else {
     // 异常状态下，把错误信息返回去
     Toast(`${i18n.t('internetErr')}`);
-    return {
-      status: 500,
-      msg: `${i18n.t('internetErr')}`
-    };
+    return { status: response.status, msg: `${i18n.t('internetErr')}` };
   }
 }
 
@@ -48,7 +53,7 @@ function switchCode(code) {
   switch (code) {
     case 1:
       setTimeout(() => {
-        window.location.href = '#/login';
+        router.push('/login');
         sessionStorage.clear();
       }, 1000);
       return Toast(`${i18n.t('responseCode.sessionOut')}`);
@@ -74,8 +79,8 @@ function switchCode(code) {
       return Toast(`${i18n.t('responseCode.UnableBattery')}`);
     case 6023:
       return Toast(`${i18n.t('responseCode.UnableGecfence')}`);
-      // case -1:
-      //   return Toast(`${i18n.t('responseCode.UnableGecfence')}`);
+    // case -1:
+    //   return Toast(`${i18n.t('responseCode.UnableGecfence')}`);
     default:
       break;
   }
@@ -90,10 +95,10 @@ function checkCode(res) {
   return res;
 }
 
-
-const timeout = 30000; // 超时时间
+const timeout = 100000; // 超时时间
 export default {
-  post(url, data) { //  post
+  post(url, data) {
+    //  post
     return Axios({
       method: 'post',
       baseURL: BaseUrl,
@@ -101,12 +106,14 @@ export default {
       data: JSON.stringify(data),
       timeout: timeout,
       headers: {
-        'Content-Type': "application/json"
+        'Content-Type': 'application/json'
       }
-    }).then((response) => {
-      return checkStatus(response);
-    }).then((res) => {
-      return checkCode(res);
-    });
+    })
+      .then(response => {
+        return checkStatus(response);
+      })
+      .then(res => {
+        return checkCode(res);
+      });
   }
 };

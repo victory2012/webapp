@@ -1,12 +1,13 @@
 <template>
-  <div id="containers" class="mapWarrps"></div>
+  <div id="containers"
+    class="mapWarrps"></div>
 </template>
 <script>
 /* eslint-disable */
 import google from "google";
 /* eslint-disable */
 import jquery from "jquery";
-import { onError, onTimeOut } from "../../utils/callback";
+import { onError } from "../../utils/callback";
 
 let map;
 let ponterIndex;
@@ -14,10 +15,10 @@ export default {
   props: {
     propData: {
       type: Object,
-      default: () => {}
+      default: () => { }
     }
   },
-  data() {
+  data () {
     return {
       markers: [],
       markerTime: [],
@@ -26,19 +27,19 @@ export default {
   },
   watch: {
     propData: {
-      handler: function(val) {
+      handler: function (val) {
         console.log("val.data", val);
         this.mapInit(val, val.type);
       },
       deep: true
     }
   },
-  mounted() {
+  mounted () {
     // console.log(jquery);
     this.init();
   },
   methods: {
-    mapInit(value, fromWs) {
+    mapInit (value, fromWs) {
       if (this.markers.length > 0) {
         this.markers.forEach(key => {
           key.setMap(null);
@@ -89,7 +90,7 @@ export default {
               latLngData +
               "&location_type=ROOFTOP&result_type=street_address&key=AIzaSyC8IXpNgfA7uD-Xb0jEqhkEdB7j3gbgOiE",
             async: true,
-            success: function(data) {
+            success: function (data) {
               let address;
               if (data.status === "OK") {
                 address = data.results[0].formatted_address;
@@ -98,15 +99,15 @@ export default {
               }
               let site = `${self.$t("positions.batteryCode")}：${
                 key.datas[3]
-              }<br />${self.$t("positions.deviceCode")}：${
+                }<br />${self.$t("positions.deviceCode")}：${
                 key.deviceCode
-              }<br />${self.$t("positions.updateTime")}：${
+                }<br />${self.$t("positions.updateTime")}：${
                 key.datas[2]
-              }<br />${self.$t(
-                "positions.latLng"
-              )}：${latLngData}<br />${self.$t(
-                "positions.address"
-              )}：${address}`;
+                }<br />${self.$t(
+                  "positions.latLng"
+                )}：${latLngData}<br />${self.$t(
+                  "positions.address"
+                )}：${address}`;
               this.infowindow = new google.maps.InfoWindow({
                 content: site
               });
@@ -128,7 +129,7 @@ export default {
         map.fitBounds(bounds);
       }
     },
-    init() {
+    init () {
       try {
         map = new google.maps.Map(document.getElementById("containers"), {
           center: {

@@ -13,12 +13,12 @@
 /* eslint-disable */
 import AMap from "AMap";
 import { getFence, websockets, singleDeviceId } from "../../api/index";
-import { onTimeOut, onWarn, onError } from "../../utils/callback";
+import { onWarn, onError } from "../../utils/callback";
 let map;
 let polygonArr = [];
 let pointerObj = {};
 export default {
-  data() {
+  data () {
     return {
       grid: "",
       efence: "",
@@ -31,12 +31,24 @@ export default {
   },
   methods: {
     // 已经添加了围栏，根据围栏坐标 画出围栏
-    hasFence(gpsList) {
-      let poi = gpsList.split(";");
+    hasFence (gpsList) {
+      const stringGPS = gpsList.toString();
+      let sort = stringGPS.substring(0, stringGPS.length - 1);
+      let poi = sort.split(';');
       let allPointers = [];
-      poi.forEach(res => {
+      poi.forEach((res, index) => {
         let item = res.split(",");
         let arr = [item[0], item[1]];
+        new AMap.Marker({
+          icon: new AMap.Icon({
+            image: `http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png`,
+            size: new AMap.Size(20, 35)
+          }),
+          position: arr,
+          zIndex: 101,
+          clickable: true,
+          map: map
+        });
         allPointers.push(arr);
       });
       /** 画多边形 */
@@ -55,12 +67,12 @@ export default {
       map.setFitView(); // 地图自适应
     },
     /* goBack 返回 */
-    goBack() {
+    goBack () {
       this.$router.push({
         path: "alarmdata"
       });
     },
-    getData() {
+    getData () {
       getFence().then(res => {
         if (res.data.code === 0) {
           if (res.data.data.length > 0) {
@@ -75,7 +87,7 @@ export default {
         }
       });
     },
-    init() {
+    init () {
       if (this.grid) {
         let point = this.grid.split(";");
         map = new AMap.Map("AddContainer", {
@@ -103,7 +115,7 @@ export default {
         this.hasFence(this.efence);
       }
     },
-    mapInit(obj) {
+    mapInit (obj) {
       let allmarkerArr = Object.values(obj);
       allmarkerArr.forEach(key => {
         let lngs = key.toString().split(",");
@@ -124,7 +136,7 @@ export default {
         this.markers.push(marker);
       });
     },
-    localPosition() {
+    localPosition () {
       let NowDeviceId = this.$route.query.deviceId;
       singleDeviceId(NowDeviceId).then(res => {
         if (res.data.code === 0) {
@@ -133,7 +145,7 @@ export default {
           if (result) {
             pointerObj[result.deviceId] = `${result.longitude},${
               result.latitude
-            }`;
+              }`;
             this.sendData.param.push(result.deviceId);
             this.mapInit(pointerObj);
             this.sockets(JSON.stringify(this.sendData));
@@ -141,7 +153,7 @@ export default {
         }
       });
     },
-    sockets(sendData) {
+    sockets (sendData) {
       websockets(ws => {
         ws.onopen = () => {
           console.log("open....");
@@ -173,12 +185,12 @@ export default {
       });
     }
   },
-  mounted() {
+  mounted () {
     this.grid = this.$route.query.grid;
     this.efence = this.$route.query.efence;
     this.init();
   },
-  beforeDestroy() {
+  beforeDestroy () {
     if (typeof this.over === "function") {
       this.over();
     }

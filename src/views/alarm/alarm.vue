@@ -52,7 +52,7 @@
             </li>
             <li>
               <div>{{$t('alarmList.content')}}</div>
-              <div class="cons">{{detailObj.content}}</div>
+              <div class="cons content">{{detailObj.content}}</div>
             </li>
             <li>
               <div>{{$t('alarmList.grid')}}</div>
@@ -82,7 +82,7 @@ export default {
     "mt-loadmore": Loadmore,
     "mt-popup": Popup
   },
-  data() {
+  data () {
     return {
       tableData: [],
       detailObj: {},
@@ -94,14 +94,14 @@ export default {
     };
   },
   methods: {
-    handleBottomChange(status) {
+    handleBottomChange (status) {
       this.bottomStatus = status;
     },
-    loadBottom() {
+    loadBottom () {
       this.pageNum++;
       this.getData();
     },
-    getData() {
+    getData () {
       Indicator.open();
       let pageObj = {
         pageNum: this.pageNum,
@@ -140,7 +140,7 @@ export default {
         }
       });
     },
-    alarmPos() {
+    alarmPos () {
       // 查看位置
       let { grid, deviceId, efence } = this.detailObj;
       const loginData = JSON.parse(localStorage.getItem("loginData"));
@@ -164,15 +164,13 @@ export default {
         });
       }
     },
-    Details(key) {
+    Details (key) {
       this.showIt = true;
       this.detailObj = key;
     }
   },
-  mounted() {
-    this.wrapperHeight =
-      document.documentElement.clientHeight -
-      this.$refs.wrapper.getBoundingClientRect().top;
+  mounted () {
+    this.wrapperHeight = document.documentElement.clientHeight - this.$refs.wrapper.getBoundingClientRect().top;
     this.getData();
   }
 };
@@ -251,6 +249,10 @@ export default {
         &.devices {
           font-size: px2rem(12px);
           flex: 0 0 px2rem(130px);
+          // width: px2rem(130px);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         p {
           font-size: px2rem(12px);
@@ -285,17 +287,22 @@ export default {
   .info {
     li {
       font-size: px2rem($tableFont);
-      height: px2rem(45px);
       display: flex;
       div {
         flex: 1;
         color: #494848;
         line-height: px2rem(45px);
-        font-size: 13px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
         &.cons {
-          flex: 0 0 px2rem(140px);
+          flex: 0 0 px2rem(130px);
           color: #333;
-          text-align: right;
+          // text-align: right;
+        }
+        &.content {
+          height: px2rem(45px);
+          line-height: normal;
         }
       }
     }

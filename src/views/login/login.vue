@@ -1,10 +1,12 @@
 <template>
   <div class="login_page fillcontain">
-    <div @click="sheetVisible=true" class="languageWarp">
+    <div @click="sheetVisible=true"
+      class="languageWarp">
       <p class="languageCenter">{{localLanguge}}<i class="iconfont icon-icon11 more"></i></p>
     </div>
     <div class="logo">
-      <img src="../../../static/img/logo.png" alt="">
+      <img src="../../../static/img/logo.png"
+        alt="">
     </div>
     <section class="form_contianer">
       <div class="manage_tip">
@@ -12,44 +14,63 @@
       </div>
       <div class="form">
         <div class="account">
-          <mt-field type="text" :label="$t('loginMsg.accountPlace')" :placeholder="$t('loginMsg.userNameMsg')" v-model="loginForm.userName"></mt-field>
+          <mt-field type="text"
+            :label="$t('loginMsg.accountPlace')"
+            :placeholder="$t('loginMsg.userNameMsg')"
+            v-model="loginForm.userName"></mt-field>
         </div>
         <div class="pwd">
-          <mt-field type="password" :label="$t('loginMsg.passwordPlace')" :placeholder="$t('loginMsg.password')" v-model="loginForm.password"></mt-field>
+          <mt-field type="password"
+            :label="$t('loginMsg.passwordPlace')"
+            :placeholder="$t('loginMsg.password')"
+            v-model="loginForm.password"></mt-field>
         </div>
         <div class="rem">
           <div>
-            <input id="account" class="magic-checkbox" type="checkbox" v-model="accountVal" />
-            <label for="account" class="my_protocol">{{$t('loginMsg.RMaccount')}}</label>
+            <input id="account"
+              class="magic-checkbox"
+              type="checkbox"
+              v-model="accountVal" />
+            <label for="account"
+              class="my_protocol">{{$t('loginMsg.RMaccount')}}</label>
           </div>
           <div>
-            <input id="pwd" class="magic-checkbox" type="checkbox" v-model="passwordVal" />
-            <label for="pwd" class="my_protocol">{{$t('loginMsg.RMpassword')}}</label>
+            <input id="pwd"
+              class="magic-checkbox"
+              type="checkbox"
+              v-model="passwordVal" />
+            <label for="pwd"
+              class="my_protocol">{{$t('loginMsg.RMpassword')}}</label>
           </div>
         </div>
         <div class="buttom">
-          <mt-button class="btns" type="primary" size='small' @click="submitForm">{{$t('loginMsg.loginBtn')}}</mt-button>
+          <mt-button class="btns"
+            type="primary"
+            size='small'
+            @click="submitForm">{{$t('loginMsg.loginBtn')}}</mt-button>
           <!-- <mt-button class="btns" type="primary" size='small' @click="changLocalLang">{{localLanguge}}</mt-button> -->
         </div>
       </div>
     </section>
-    <mt-actionsheet :actions="actions" v-model="sheetVisible" cancelText="Cancel">
+    <mt-actionsheet :actions="actions"
+      v-model="sheetVisible"
+      cancelText="Cancel">
     </mt-actionsheet>
   </div>
 </template>
 
 <script>
 import { Field, MessageBox, Actionsheet, Indicator } from "mint-ui";
-import { getAdminInfo } from "../../api/index";
-import { onError } from "../../utils/callback";
-import { setStorage, getStorage } from "../../utils/transition";
+import { getAdminInfo } from "@/api/index";
+import { onError } from "@/utils/callback";
+import { setStorage, getStorage } from "@/utils/transition";
 
 export default {
   components: {
     "mt-field": Field,
     "mt-actionsheet": Actionsheet
   },
-  data() {
+  data () {
     return {
       sheetVisible: false,
       accounts: [],
@@ -71,7 +92,7 @@ export default {
       showLogin: false
     };
   },
-  created() {
+  created () {
     let locallanguage = localStorage.getItem("locale");
     // this.$i18n.locale = locallanguage || "CN";
     if (locallanguage) {
@@ -94,7 +115,7 @@ export default {
     }
   },
   methods: {
-    languageChange(str) {
+    languageChange (str) {
       console.log("languageChange", str);
       if (str.id === "en") {
         this.$i18n.locale = "en";
@@ -107,20 +128,7 @@ export default {
         setStorage("locale", "cn");
       }
     },
-    // changLocalLang() {
-    //   if (this.langs === "en") {
-    //     this.$i18n.locale = "CN";
-    //     this.langs = "cn";
-    //     setStorage("locale", "CN");
-    //     this.localLanguge = "中文";
-    //   } else {
-    //     this.langs = "en";
-    //     this.localLanguge = "English";
-    //     this.$i18n.locale = "EN";
-    //     setStorage("locale", "EN");
-    //   }
-    // },
-    submitForm() {
+    submitForm () {
       if (!this.loginForm.userName) {
         this.accountTip = "error";
         onError(`${this.$t("loginMsg.errorMsg.account")}`);
@@ -135,44 +143,32 @@ export default {
       this.pwdTip = "success";
       this.loginFun();
     },
-    loginFun() {
+    loginFun () {
       Indicator.open();
       getAdminInfo(this.loginForm).then(res => {
-        console.log(res);
         Indicator.close();
         if (res.data && res.data.code === 0) {
-          if (typeof localStorage === "object") {
-            try {
-              let result = res.data.data;
-              let Data = JSON.stringify(result);
-              setStorage("loginData", Data);
-              if (this.accountVal) {
-                setStorage("account", this.loginForm.userName);
-              }
-              if (this.passwordVal) {
-                setStorage("password", this.loginForm.password);
-              }
-              setStorage("mapType", result.mapType);
-              this.$store.commit("LogInDate", Data);
-              setStorage("projectTit", this.$t("menu.overview"));
-              this.$router.push("/home");
-            } catch (error) {
-              MessageBox(
-                `${this.$t("loginMsg.tips")}`,
-                `${this.$t("loginMsg.sortage")}`
-              );
-            }
+          let result = res.data.data;
+          let Data = JSON.stringify(result);
+          setStorage("loginData", Data);
+          if (this.accountVal) {
+            setStorage("account", this.loginForm.userName);
           }
+          if (this.passwordVal) {
+            setStorage("password", this.loginForm.password);
+          }
+          setStorage("mapType", result.mapType);
+          this.$store.commit("LogInDate", Data);
+          this.$store.commit('SetProjectName', this.$t("menu.overview"));
+          this.$router.push("/home");
         }
       });
     },
-    init() {
+    init () {
       if (typeof localStorage === "object") {
         try {
           let account = getStorage("account");
           let pwd = getStorage("password");
-          console.log("account", account);
-          console.log("pwd", pwd);
           if (account) {
             this.loginForm.userName = account;
             this.accountVal = true;
@@ -190,7 +186,7 @@ export default {
       }
     }
   },
-  mounted() {
+  mounted () {
     this.init();
   }
 };

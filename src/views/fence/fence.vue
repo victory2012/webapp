@@ -26,11 +26,11 @@
         type="danger">{{$t('fence.delBtn')}}</mt-button>
     </div>
     <div class="batteryList"
-      :class="[closed? 'closed': '']">
+      :class="{'closed': GETfenceList}">
       <div class="titles">{{$t('positions.title2')}}</div>
       <p @click="toggleList"
         class="controlBtn">
-        <i :class="{'roted': !closed}"></i>
+        <i :class="{'roted': !GETfenceList}"></i>
       </p>
       <ul>
         <li v-for="(item, index) in pointerArr"
@@ -51,6 +51,7 @@
 </template>
 <script>
 /* eslint-disable */
+import { mapGetters } from 'vuex';
 import AMap from "AMap";
 import { Indicator } from "mint-ui";
 import {
@@ -60,7 +61,7 @@ import {
   getFenceById,
   GetDeviceList
 } from "../../api/index";
-import { onTimeOut, onError, onWarn, onSuccess } from "../../utils/callback";
+import { onError, onWarn, onSuccess } from "../../utils/callback";
 let map;
 let marker;
 let markers = [];
@@ -71,6 +72,7 @@ let polygonArr = [];
 export default {
   data () {
     return {
+      selectPonter: [],
       chooseId: "",
       naxtBtn: false,
       previousBtn: false,
@@ -82,6 +84,9 @@ export default {
       fenceId: "",
       polygon: null
     };
+  },
+  computed: {
+    ...mapGetters(['GETfenceList'])
   },
   methods: {
     init () {
@@ -96,7 +101,7 @@ export default {
     },
     // 打开&&关闭列表
     toggleList () {
-      this.closed = !this.closed;
+      this.$store.commit('setfenceList', !this.GETfenceList);
     },
     checkItem (item) {
       this.clickItme = item;
@@ -164,7 +169,7 @@ export default {
             map.off("click", this.callBackFn); // 移除地图点击事件
             mouseTool && mouseTool.close(false); // 移除 画多边形的功能
             this.hasFenced = true;
-            let gpsList = result.gpsList;
+            let gpsList = result.gpsList.substring(0, result.gpsList.length - 1);
             let id = result.id;
             this.hasFence(gpsList, id);
           } else {
@@ -204,7 +209,7 @@ export default {
         map.off("click", this.callBackFn); // 移除地图点击事件
         // mouseTool.close(false); // 移除 画多边形的功能
       } else {
-        this.json += `${e.lnglat.getLng()},${e.lnglat.getLat()};`; // 获取地图点击的jps坐标位置 集合
+        this.selectPonter.push(`${e.lnglat.getLng()},${e.lnglat.getLat()}`);
         marker = new AMap.Marker({
           map: map,
           position: [e.lnglat.getLng(), e.lnglat.getLat()]
@@ -260,18 +265,25 @@ export default {
       });
       map.setFitView(); // 地图自适应
     },
+    // 去重
+    unique (arr) {
+      return Array.from(new Set(arr))
+    },
     // 确认设置 添加围栏
     doAddFence () {
-      if (!this.json) {
+      let pointer = this.unique(this.selectPonter);
+      if (pointer.length === 0) {
         onError(`${this.$t("fence.tipMsg.addPointer")}`);
         return;
       }
-      let gpsList = this.json.substring(0, this.json.length - 1);
-      let pointer = gpsList.split(';');
       if (pointer.length < 3) {
         onError(`${this.$t("fence.tipMsg.less")}`);
         return;
       }
+      let gpsList = '';
+      pointer.forEach(key => {
+        gpsList += key + ';'
+      })
       let gpsObj = {
         deviceId: this.clickItme.deviceId,
         batteryId: this.clickItme.batteryId,
@@ -316,6 +328,8 @@ export default {
         Indicator.close();
 
         if (res.data.code === 0) {
+          this.hasFenced = false;
+          this.selectPonter = [];
           onSuccess(`${this.$t("fence.tipMsg.delSuccess")}`);
           this.polygon.setMap(null);
         }
@@ -336,6 +350,7 @@ export default {
     ToAddFence () {
       if (this.hasFenced) return;
       this.addFence = true;
+      this.selectPonter = [];
       markers = [];
       // console.log(mouseToolArr);
       if (mouseToolArr.length > 0) {
@@ -364,7 +379,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import url('../../common/style/index.scss');
+@import url("../../common/style/index.scss");
 .outer-box {
   position: absolute;
   top: $baseHeader;
@@ -409,7 +424,7 @@ export default {
         width: 100%;
         height: 100%;
         display: block;
-        background: url('../../assets/open.png') no-repeat;
+        background: url("../../assets/open.png") no-repeat;
         background-size: 16px;
         &.roted {
           transform: rotate(180deg);

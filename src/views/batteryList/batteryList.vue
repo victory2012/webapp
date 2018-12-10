@@ -9,26 +9,38 @@
         <li class="index">{{$t('batteryList.detail')}}</li>
       </ul>
     </div>
-    <div class="tableBody" ref="wrapper" :style="{ height: wrapperHeight + 'px' }">
-      <mt-loadmore :bottom-method="loadBottom" @bottom-status-change="handleBottomChange" :auto-fill="false" :bottom-all-loaded="allLoaded" ref="loadmore">
+    <div class="tableBody"
+      ref="wrapper"
+      :style="{ height: wrapperHeight + 'px' }">
+      <mt-loadmore :bottom-method="loadBottom"
+        @bottom-status-change="handleBottomChange"
+        :auto-fill="false"
+        :bottom-all-loaded="allLoaded"
+        ref="loadmore">
         <ul>
-          <li v-for=" (key, index) in tableData" :key="key.id">
+          <li v-for=" (key, index) in tableData"
+            :key="key.id">
             <div class="index">{{index +1}}</div>
             <div class="batteryid">{{key.batteryId}}</div>
             <div>{{key.bindingName}}</div>
-            <div @click="LookRun(key)" :class="[key.OLS ? 'GreenColor': 'redColor']">{{key.online}}</div>
-            <div class="blueColor index" @click="toLookDetail(key)">{{$t('batteryList.detail')}}</div>
+            <div @click="LookRun(key)"
+              :class="[key.OLS ? 'GreenColor': 'redColor']">{{key.online}}</div>
+            <div class="blueColor index"
+              @click="toLookDetail(key)">{{$t('batteryList.detail')}}</div>
           </li>
         </ul>
-        <div slot="bottom" class="mint-loadmore-bottom">
-          <span v-show="bottomStatus !== 'loading'" :class="{ 'is-rotate': bottomStatus === 'drop' }">↑</span>
+        <div slot="bottom"
+          class="mint-loadmore-bottom">
+          <span v-show="bottomStatus !== 'loading'"
+            :class="{ 'is-rotate': bottomStatus === 'drop' }">↑</span>
           <span v-show="bottomStatus === 'loading'">
             <mt-spinner type="snake"></mt-spinner>
           </span>
         </div>
       </mt-loadmore>
     </div>
-    <mt-popup v-model="showIt" popup-transition="popup-fade">
+    <mt-popup v-model="showIt"
+      popup-transition="popup-fade">
       <div class="table">
         <div class="header">
           {{$t('batteryList.batteryDetail')}}
@@ -77,8 +89,8 @@ import {
   GetList
   // deleteBattery
 } from "@/api/index";
-import { setStorage } from "@/utils/transition";
-import bus from "@/utils/bus";
+// import { setStorage } from "@/utils/transition";
+
 
 export default {
   components: {
@@ -86,7 +98,7 @@ export default {
     "mt-loadmore": Loadmore,
     "mt-popup": Popup
   },
-  data() {
+  data () {
     return {
       pageNum: 1,
       showIt: false,
@@ -99,23 +111,23 @@ export default {
       totalPage: Number
     };
   },
-  mounted() {
+  mounted () {
     this.wrapperHeight =
       document.documentElement.clientHeight -
       this.$refs.wrapper.getBoundingClientRect().top;
     this.getData();
   },
   methods: {
-    handleBottomChange(status) {
+    handleBottomChange (status) {
       this.bottomStatus = status;
     },
-    loadBottom() {
+    loadBottom () {
       this.pageNum++;
       setTimeout(() => {
         this.getData();
       }, 1000);
     },
-    getData() {
+    getData () {
       let pageObj = {
         pageSize: 20,
         pageNum: this.pageNum
@@ -155,21 +167,17 @@ export default {
         }
       });
     },
-    toLookDetail(key) {
+    toLookDetail (key) {
       this.detailObj = key;
       this.showIt = true;
     },
-    LookRun(key) {
+    LookRun (key) {
       if (!key.OLS) return;
       let userData = JSON.parse(localStorage.getItem("loginData"));
       let deviceId = key.deviceId;
       let titles = `${this.$t("menu.realposition")}`;
-
-      bus.$emit("collapsed", {
-        collapse: false,
-        msg: titles
-      });
-      setStorage("projectTit", titles);
+      this.$store.commit('SetProjectName', titles);
+      this.$store.commit('setCollapse', false);
       if (userData.mapType === 1) {
         this.$router.push({
           path: "gogPosition",

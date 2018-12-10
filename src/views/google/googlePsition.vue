@@ -3,18 +3,19 @@
     <div id="positions" class="positioned"></div>
     <!-- <gaode-map v-if="GETMAPTYPE == 0" :propData="mapData"></gaode-map>
     <google-map v-if="GETMAPTYPE == 1" :propData="mapData"></google-map> -->
-    <div class="batteryList" :class="[closed? 'closed': '']">
+    <div class="batteryList" :class="[GETrealList? 'closed': '']">
       <mt-button @click="showAllPionter" type="primary" size="small">{{$t('positions.lookAll')}}</mt-button>
       <p @click="toggleList" class="controlBtn">
-        <i :class="{'roted': !closed}"></i>
+        <i :class="{'roted': !GETrealList}"></i>
       </p>
       <ul>
         <li v-for="(item, index) in pointerArr" :class="[ devicelabel == item.deviceId ? 'selected': '', devicelabel == item.batteryId ? 'selected': '' ]" :key="item.deviceId" @click="checkItem(item, index)">
           <p>{{index + 1}}、{{deviceShow? item.deviceId : item.batteryId}}</p>
-          <div class="badges" @click.prevent.stop="HistoryTrack(item.batteryId)">
-            <span class="hisBad">{{$t('positions.track')}}</span>
-            <span class="onlines" :class="[item.onlineStatus === 0? 'off': '']">
-              <i>{{item.onLine}}</i>
+          <div class="badges">
+            <span @click.prevent.stop="HistoryTrack(item.batteryId)" class="hisBad">{{$t('positions.track')}}</span>
+            <span class="onlines" :class="[item.onlineStatus === 0 ?'off': '']">
+              <!-- <i>{{item.onLine}}</i> -->
+              <i></i>
             </span>
           </div>
         </li>
@@ -61,13 +62,13 @@
       width: 26px;
       position: absolute;
       top: 0;
-      height: 26px;
+      height: 36px;
+      padding: 10px 4px;
       left: -27px;
       background-color: #fff;
-      padding: 4px;
-      border-radius: 2px;
-      border: 1px solid #e5e5e5;
-
+      // padding: 4px;
+      border-radius: 4px;
+      border: 1px solid #b3d8ff;
       i {
         width: 100%;
         height: 100%;
@@ -99,7 +100,7 @@
         .badges {
           padding-left: 15px;
           position: relative;
-          // width: 80%;
+          text-align: right;
           .hisBad {
             border: 1px solid #f0f0f0;
             border-radius: 5px;
@@ -109,12 +110,15 @@
           }
           .onlines {
             position: absolute;
-            top: -20px;
-            right: 0;
-            font-size: px2rem(12px);
-            color: red;
+            top: -6px;
+            right: -4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid #cccccc;
+            background: #67c23a;
             &.off {
-              color: gray;
+              background: #f0f0f0;
             }
           }
         }
@@ -137,10 +141,10 @@
 
 <script>
 /* eslint-disable */
-import jquery from "jquery";
+import { mapGetters } from 'vuex';
+// import jquery from "jquery";
 import google from "google";
 import { Indicator } from "mint-ui";
-import bus from "@/utils/bus";
 import { websockets, GetDeviceList } from "@/api/index";
 import {
   timeFormats,
@@ -155,16 +159,15 @@ import { onError } from "@/utils/callback";
 
 let map;
 let infoWindow;
-let ponterIndex;
 let batteryIdArr = {};
-let pointerObj = {};
 export default {
   // components: {
   //   googleMap,
   //   gaodeMap
   // },
-  data() {
+  data () {
     return {
+      pointerObj: {},
       mapData: {},
       pointerArr: [],
       lnglat: "",
@@ -185,11 +188,11 @@ export default {
       pathParams: "" // url 中设备id 参数
     };
   },
-  // computed: {
-  //   ...mapGetters(["GETMAPTYPE"])
-  // },
+  computed: {
+    ...mapGetters(['GETrealList'])
+  },
   methods: {
-    init() {
+    init () {
       map = new google.maps.Map(document.getElementById("positions"), {
         center: {
           lat: 0,
@@ -199,14 +202,14 @@ export default {
       });
       this.getListData();
     },
-    next() {
+    next () {
       if (this.pageNum < this.total) {
         this.over();
         this.pageNum = this.pageNum + 1;
         this.getListData();
       }
     },
-    previous() {
+    previous () {
       if (this.pageNum > 1) {
         this.pageNum = this.pageNum - 1;
         this.over();
@@ -214,22 +217,18 @@ export default {
       }
     },
     // 打开&&关闭列表
-    toggleList() {
-      this.closed = !this.closed;
+    toggleList () {
+      // this.closed = !this.closed;
+      this.$store.commit('setRealList', !this.GETrealList);
       // this.toggleTip = this.closed ? "展开" : "收起";
     },
     // 查看所有点
-    showAllPionter() {
+    showAllPionter () {
       this.devicelabel = null;
       this.deviceId = null;
-      // this.mapData = {
-      //   data: pointerObj,
-      //   ponterIndex: ponterIndex,
-      //   type: "fromWs"
-      // };
-      this.GaoDeMap(pointerObj, "fromWs");
+      this.GaoDeMap(this.pointerObj, "fromWs");
     },
-    pageChange() {
+    pageChange () {
       this.over();
       if (this.markers.length > 0) {
         this.markers.forEach(key => {
@@ -240,7 +239,7 @@ export default {
       this.getListData();
     },
 
-    getListData() {
+    getListData () {
       let pageObj = {
         pageNum: this.pageNum,
         pageSize: 10
@@ -261,35 +260,22 @@ export default {
           let result = center.data;
           this.total = center.totalPage;
           let sendData = { api: "bind", param: [] };
-          pointerObj = {};
+          this.pointerObj = {};
           if (result.length > 0) {
             this.naxtBtn = this.pageNum < this.total ? true : false;
             this.previousBtn = this.pageNum === 1 ? false : true;
             if (this.pathParams) {
               result.forEach((key, index) => {
-                pointerObj[key.deviceId] = `${key.latitude},${
-                  key.longitude
-                },${trakTimeformat(key.pushTime)},${key.batteryId},${
-                  key.onlineStatus
-                },0,${index + 1},${key.voltage}`;
-                if (key.onlineStatus === 1) {
-                  key.onLine = this.$t("positions.onLine");
-                  if (key.batteryId) {
-                    batteryIdArr[key.deviceId] = key.batteryId; // 制作电池id 字典。以设备id作为key，电池id作为value。
-                  }
-                  // if (!this.hasGet) {
-                  //   map.setCenter(
-                  //     new google.maps.LatLng(key.latitude, key.longitude)
-                  //   );
-                  // } else {
-                  //   this.hasGet = true;
-                  // }
-                  if (key.deviceId) {
-                    sendData.param.push(key.deviceId);
-                  }
-                  // pathParams 路由传参。为设备id
-                } else {
-                  key.onLine = this.$t("positions.offline");
+                if (Math.abs(Number(key.longitude)) > 1 && Math.abs(Number(key.latitude)) > 1) {
+                  this.pointerObj[key.deviceId] = `${key.longitude},${key.latitude},${trakTimeformat(key.pushTime)},${key.batteryId},${key.onlineStatus},0,${index + 1},${key.voltage}`;
+                  // pointerObj 对象。其key为设备id（唯一性），value为字符串、依次顺序为经度、纬度、时间、电池id、在线状态
+                }
+                key.onLine = key.onlineStatus === 1 ? this.$t("positions.onLine") : this.$t("positions.offline");
+                if (key.batteryId) {
+                  batteryIdArr[key.deviceId] = key.batteryId; // 制作电池id 字典。以设备id作为key，电池id作为value。
+                }
+                if (key.deviceId) {
+                  sendData.param.push(key.deviceId);
                 }
                 if (this.pathParams === key.deviceId) {
                   let opts = {
@@ -313,7 +299,7 @@ export default {
       });
     },
     // websockets 请求
-    sockets(data) {
+    sockets (data) {
       websockets(ws => {
         ws.onopen = () => {
           console.log("open....");
@@ -331,35 +317,33 @@ export default {
               this.markers = [];
             }
             let obj = data.data.split(",");
-            let battery = batteryIdArr[obj[0]]; // 从电池id 字典中获取电池id，obj[0] 为设备id。
-            let pointerObjKeys = Object.keys(pointerObj);
-            let ponterIndexs = pointerObjKeys.indexOf(obj[0]);
-            obj.forEach(() => {
-              pointerObj[obj[0]] = `${obj[1]},${
-                obj[2]
-              },${nowDate()},${battery},1,1,${ponterIndexs + 1},${obj[3]}`; // pointerObj 对象。其key为设备id（唯一性），value为字符串、依次顺序为经度、纬度、时间、电池id、在线状态、推送数据标志
-            });
+            if (this.pointerArr.length > 0) {
+              this.pointerArr.forEach(key => {
+                if (key.deviceId === obj[0]) {
+                  key.onlineStatus = 1;
+                  let ponterIndexs = this.pointerObj[obj[0]];
+                  let index = ponterIndexs.split(',');
+                  if (Math.abs(Number(obj[2])) > 1 && Math.abs(Number(obj[1])) > 1) {
+                    this.pointerObj[obj[0]] = `${obj[2]},${obj[1]},${nowDate()},${key.batteryId},1,1,${index[6]},${obj[3]}`;
+                    // pointerObj 对象。其key为设备id（唯一性），value为字符串、
+                    // 依次顺序为 经度、纬度、时间、电池id、在线状态、推送数据标志, 电压
+                  }
+                  return false;
+                }
+              })
+            }
+
             if (this.deviceId || this.pathParams) {
-              let keys = Object.keys(pointerObj);
+              let keys = Object.keys(this.pointerObj);
               let nextObj = {};
               keys.forEach((item, index) => {
                 if (item === this.deviceId || item === this.pathParams) {
-                  nextObj[item] = pointerObj[item];
+                  nextObj[item] = this.pointerObj[item];
                 }
               });
-              // this.mapData = {
-              //   data: nextObj,
-              //   ponterIndex: ponterIndex,
-              //   type: "fromClick"
-              // };
               this.GaoDeMap(nextObj, "fromClick");
             } else {
-              // this.mapData = {
-              //   data: pointerObj,
-              //   ponterIndex: ponterIndex,
-              //   type: "fromWs"
-              // };
-              this.GaoDeMap(pointerObj, "fromWs");
+              this.GaoDeMap(this.pointerObj, "fromWs");
             }
           }
         };
@@ -380,67 +364,50 @@ export default {
      @params batteryIdArr 为电池ID对象 key为设备id，value为电池id
      @params pointerObj 电池坐标点对象，key为设备id，value为一个字符串，依次顺序为经度、纬度、时间、电池id。以逗号隔开
      */
-    mapInit(data) {
-      pointerObj = {};
+    mapInit (data) {
+      this.pointerObj = {};
       let sendData = { api: "bind", param: [] };
       console.log(data);
       data.forEach((key, index) => {
-        pointerObj[key.deviceId] = `${key.latitude},${
-          key.longitude
-        },${trakTimeformat(key.pushTime)},${key.batteryId},${
-          key.onlineStatus
-        },0,${index + 1},${key.voltage}`; // pointerObj 对象。其key为设备id（唯一性），value为字符串、依次顺序为经度、纬度、时间、电池id、在线状态、推送数据标志
-        if (key.onlineStatus === 1) {
-          // onlineStatus 判断是否在线的标识。1 在线。0 离线；
-          key.onLine = this.$t("positions.onLine");
-          if (key.batteryId) {
-            sendData.param.push(key.deviceId);
-            batteryIdArr[key.deviceId] = key.batteryId; // 制作电池id 字典。以设备id作为key，电池id作为value。
-          }
-        } else {
-          key.onLine = this.$t("positions.offline");
+        // onlineStatus 判断是否在线的标识。1 在线。0 离线；
+        key.onLine = key.onlineStatus === 1 ? this.$t("positions.onLine") : this.$t("positions.offline");
+        if (key.batteryId) {
+          sendData.param.push(key.deviceId);
+          batteryIdArr[key.deviceId] = key.batteryId; // 制作电池id 字典。以设备id作为key，电池id作为value。
+        }
+        if (Math.abs(Number(key.longitude)) > 1 && Math.abs(Number(key.latitude)) > 1) {
+          this.pointerObj[key.deviceId] = `${key.longitude},${key.latitude},${trakTimeformat(key.pushTime)},${key.batteryId},${key.onlineStatus},0,${index + 1},${key.voltage}`;
         }
         this.pointerArr.push(key);
+
       });
       this.sockets(JSON.stringify(sendData));
-      // this.mapData = {
-      //   data: pointerObj,
-      //   ponterIndex: ponterIndex,
-      //   type: ""
-      // };
-      this.GaoDeMap(pointerObj);
+      this.GaoDeMap(this.pointerObj);
     },
     /*
     * @params deviceId 电池列表 获取的设备id。
     * @params index 为列表的索引。这里取这个索引是为了让地图的mark点 显示点的是第几个。
      */
-    checkItem(item, index) {
-      if (item.onlineStatus === 0) return;
+    checkItem (item, index) {
+      if (!item.longitude || !item.latitude) return;
       // map.setCenter(new AMap.LngLat(item.longitude, item.latitude));
       this.devicelabel = item.deviceId;
       this.deviceId = item.deviceId;
       this.showTip = item.batteryId;
       this.toggleList();
-      ponterIndex = index + 1;
       infoWindow && infoWindow.close(); // infoWindow 高德地图 数据展示框。
-      if (this.deviceId && pointerObj) {
-        let keys = Object.keys(pointerObj);
+      if (this.deviceId && this.pointerObj) {
+        let keys = Object.keys(this.pointerObj);
         let selectObj = {};
         keys.forEach(items => {
           if (items === this.deviceId) {
-            selectObj[this.deviceId] = `${pointerObj[items]},${ponterIndex}`;
+            selectObj[this.deviceId] = `${this.pointerObj[items]},${index + 1}`;
           }
         });
-        console.log(selectObj);
-        // this.mapData = {
-        //   data: selectObj,
-        //   ponterIndex: ponterIndex,
-        //   type: "fromClick"
-        // };
         this.GaoDeMap(selectObj, "fromClick");
       }
     },
-    GaoDeMap(data, type) {
+    GaoDeMap (data, type) {
       if (this.markers.length > 0) {
         this.markers.forEach(key => {
           key.setMap(null);
@@ -454,9 +421,9 @@ export default {
       this.markerTime = [];
       for (let i = 0; i < allmarkerArr.length; i++) {
         var lngs = allmarkerArr[i].toString().split(",");
-        if (lngs[0].length > 6 && lngs[1].length > 6 && lngs[4] === "1") {
+        if (lngs[0] && lngs[1]) {
           let obj = {};
-          var latLng = new google.maps.LatLng(lngs[0], lngs[1]);
+          var latLng = new google.maps.LatLng(lngs[1], lngs[0]);
           var marker = new google.maps.Marker({
             position: latLng,
             label: `${i + 1}`,
@@ -469,7 +436,7 @@ export default {
           if (type === "fromClick") {
             map.setCenter(latLng);
             marker.setLabel({
-              text: `${ponterIndex}`
+              text: `${lngs[6]}`
             });
           }
           obj.pointer = marker;
@@ -489,21 +456,21 @@ export default {
           if (key.datas[7] === "null") {
             site = `${self.$t("positions.batteryCode")}：${
               key.datas[3]
-            }<br />${self.$t("positions.deviceCode")}：${
+              }<br />${self.$t("positions.deviceCode")}：${
               key.deviceCode
-            }<br />${self.$t("positions.updateTime")}：${
+              }<br />${self.$t("positions.updateTime")}：${
               key.datas[2]
-            }<br />${self.$t("positions.latLng")}：${latLngData}`;
+              }<br />${self.$t("positions.latLng")}：${latLngData}`;
           } else {
             site = `${self.$t("positions.voltage")}: ${
               key.datas[7]
-            }<br />${self.$t("positions.batteryCode")}：${
+              }<br />${self.$t("positions.batteryCode")}：${
               key.datas[3]
-            }<br />${self.$t("positions.deviceCode")}：${
+              }<br />${self.$t("positions.deviceCode")}：${
               key.deviceCode
-            }<br />${self.$t("positions.updateTime")}：${
+              }<br />${self.$t("positions.updateTime")}：${
               key.datas[2]
-            }<br />${self.$t("positions.latLng")}：${latLngData}`;
+              }<br />${self.$t("positions.latLng")}：${latLngData}`;
           }
 
           this.infowindow = new google.maps.InfoWindow({
@@ -560,7 +527,7 @@ export default {
       }
     },
     // 查看历史轨迹。路由传参 设备id
-    HistoryTrack(batteryId) {
+    HistoryTrack (batteryId) {
       const loginData = JSON.parse(localStorage.getItem("loginData"));
       if (loginData && loginData.mapType === 1) {
         this.$router.push({
@@ -575,18 +542,15 @@ export default {
       }
 
       let titles = `${this.$t("menu.history")}`;
-      bus.$emit("collapsed", {
-        collapse: false,
-        msg: titles
-      });
-      setStorage("projectTit", titles);
+      this.$store.commit('SetProjectName', titles);
+      this.$store.commit('setCollapse', false);
     }
   },
   /*
   * 用beforeRouteEnter 这个路由钩子函数 来判断是从哪个路由跳转过来的
   * 以此来处理列表显示内容
   */
-  beforeRouteEnter(to, from, next) {
+  beforeRouteEnter (to, from, next) {
     next(vm => {
       if (from.name === "device" && vm.pathParams) {
         vm.titles = `${this.$t("positions.title1")}`;
@@ -600,12 +564,12 @@ export default {
       }
     });
   },
-  mounted() {
+  mounted () {
     this.GETMAPTYPE = localStorage.getItem("mapType");
     this.pathParams = this.$route.query.deviceId;
     this.init();
   },
-  beforeDestroy() {
+  beforeDestroy () {
     if (typeof this.over === "function") {
       this.over();
     }

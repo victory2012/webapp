@@ -39,15 +39,16 @@
       </ul>
     </div>
     <!-- <component :is="mapType" :propData="mapData"></component> -->
-    <gaodao-map v-if="GETMAPTYPE == 0" :propData="mapData"></gaodao-map>
-    <google-map v-if="GETMAPTYPE == 1" :propData="mapData"></google-map>
+    <gaodao-map v-if="GETMAPTYPE == 0"
+      :propData="mapData"></gaodao-map>
+    <google-map v-if="GETMAPTYPE == 1"
+      :propData="mapData"></google-map>
   </div>
 </template>
 <script>
 // import { mapGetters } from "vuex";
 import { Indicator } from "mint-ui";
 import { websockets, GetDeviceList, GetCount } from "../../api/index";
-import { onError, onWarn } from "../../utils/callback";
 import gaodaoMap from "./gaodeMap";
 import googleMap from "./googleMap";
 
@@ -59,7 +60,7 @@ export default {
     gaodaoMap,
     googleMap
   },
-  data() {
+  data () {
     return {
       count: {},
       mapData: {},
@@ -78,7 +79,7 @@ export default {
   // },
   methods: {
     /* 获取统计数据 */
-    getTocalsData() {
+    getTocalsData () {
       GetCount().then(res => {
         console.log("GetCount", res);
         if (res.data && res.data.code === 0) {
@@ -92,7 +93,7 @@ export default {
     /*
       http请求 获取全部电池设备
      */
-    narmleHttp() {
+    narmleHttp () {
       let pageObj = {
         pageNum: 1,
         pageSize: 999999999,
@@ -109,7 +110,7 @@ export default {
           pointerObj = {};
           if (result.length > 0) {
             result.forEach(key => {
-              if (key.longitude && key.latitude && key.onlineStatus === 1) {
+              if (key.longitude && key.latitude && Number(key.longitude) > 0 && Number(key.latitude) > 0 && key.onlineStatus === 1) {
                 pointerObj[key.deviceId] = `${key.longitude},${key.latitude}`;
                 this.sendData.param.push(key.deviceId);
               }
@@ -119,8 +120,6 @@ export default {
               type: "http"
             };
             this.sockets(JSON.stringify(this.sendData));
-          } else {
-            onWarn("暂无设备, 请先注册设备");
           }
         }
       });
@@ -128,7 +127,7 @@ export default {
     /*
       websockets 请求
      */
-    sockets(datas) {
+    sockets (datas) {
       websockets(ws => {
         ws.onopen = () => {
           console.log("open....");
@@ -150,19 +149,23 @@ export default {
           if (data.code === 2) {
             // code 为 1时 既绑定成功，2时为 收到了数据
             let obj = data.data.split(",");
-            obj.forEach(() => {
+            if (Number(obj[2]) > 0 && Number(obj[1]) > 0) {
               pointerObj[obj[0]] = `${obj[2]},${obj[1]}`;
-            });
-            this.mapData = {
-              data: pointerObj,
-              type: "ws"
-            };
+              this.mapData = {
+                data: pointerObj,
+                type: "ws"
+              };
+            }
+
+            // obj.forEach(() => {
+            //   pointerObj[obj[0]] = `${obj[2]},${obj[1]}`;
+            // });
+
             // this.mapInit(pointerObj);
           }
         };
         ws.onerror = () => {
           wsTimer && clearInterval(wsTimer);
-          onError("服务器繁忙，请稍后重试");
           this.over();
         };
         ws.onclose = () => {
@@ -173,23 +176,23 @@ export default {
         };
       });
     },
-    init() {
+    init () {
       this.getTocalsData();
       this.narmleHttp();
     }
   },
-  mounted() {
+  mounted () {
     this.GETMAPTYPE = localStorage.getItem("mapType");
     this.init();
   },
-  beforeDestroy() {
+  beforeDestroy () {
     this.over();
     wsTimer && clearInterval(wsTimer);
   }
 };
 </script>
 <style lang="scss" scoped>
-@import url("../../common/style/index.scss");
+@import url('../../common/style/index.scss');
 .warrp {
   position: absolute;
   top: $baseHeader;

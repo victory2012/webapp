@@ -1,11 +1,17 @@
 <template>
   <div class="outer-box">
-    <div id="AddContainer" class="fenceContainer"></div>
+    <div id="AddContainer"
+      class="fenceContainer"></div>
     <div class="HandleBtn">
-      <mt-button size="small" @click="goBack" type="primary">{{$t('googleAbno.return')}}</mt-button>
+      <mt-button size="small"
+        @click="goBack"
+        type="primary">{{$t('googleAbno.return')}}</mt-button>
     </div>
-    <div class="localPosition" @click="localPosition" :title="$t('googleAbno.title')">
-      <img src="../../../static/img/local_normal.png" alt="">
+    <div class="localPosition"
+      @click="localPosition"
+      :title="$t('googleAbno.title')">
+      <img src="../../../static/img/local_normal.png"
+        alt="">
     </div>
   </div>
 </template>
@@ -13,13 +19,13 @@
 /* eslint-disable */
 import google from "google";
 import { getFence, websockets, singleDeviceId } from "@/api/index";
-import { onTimeOut, onError } from "@/utils/callback";
+import { onError } from "@/utils/callback";
 
 let map;
 
 let pointerObj = {};
 export default {
-  data() {
+  data () {
     return {
       grid: "",
       efence: "",
@@ -32,7 +38,7 @@ export default {
   },
   methods: {
     // 已经添加了围栏，根据围栏坐标 画出围栏
-    hasFence(gpsList) {
+    hasFence (gpsList) {
       let poi = gpsList.substring(0, gpsList.length - 1).split(";");
       let allPointers = [];
       poi.forEach(res => {
@@ -51,16 +57,14 @@ export default {
       bermudaTriangle.setMap(map);
     },
     /* goBack 返回 */
-    goBack() {
+    goBack () {
       this.$router.push({
         path: "alarmdata"
       });
     },
-    getData() {
+    getData () {
       getFence().then(res => {
-        if (res.data.code === 1) {
-          onTimeOut(this.$router);
-        }
+
         if (res.data.code === 0) {
           if (res.data.data.length > 0) {
             let result = res.data.data;
@@ -72,12 +76,9 @@ export default {
             });
           }
         }
-        if (res.data.code === -1) {
-          onError(res.data.msg);
-        }
       });
     },
-    init() {
+    init () {
       try {
         map = new google.maps.Map(document.getElementById("AddContainer"), {
           center: {
@@ -104,7 +105,7 @@ export default {
         onError(`${this.$t("mapError")}`);
       }
     },
-    mapInit(obj) {
+    mapInit (obj) {
       let allmarkerArr = Object.values(obj);
       allmarkerArr.forEach(key => {
         let lngs = key.toString().split(",");
@@ -117,7 +118,7 @@ export default {
         this.markers.push(marker);
       });
     },
-    localPosition(rest) {
+    localPosition (rest) {
       websockets(ws => {
         ws.onopen = () => {
           console.log("open....");
@@ -151,13 +152,10 @@ export default {
         };
       });
     },
-    singleDevice() {
+    singleDevice () {
       let NowDeviceId = this.$route.query.deviceId;
       singleDeviceId(NowDeviceId)
         .then(res => {
-          if (res.data.code === 1) {
-            onTimeOut(this.$router);
-          }
           if (res.data.code === 0) {
             let result = res.data.data;
             console.log(result);
@@ -170,27 +168,21 @@ export default {
             if (result) {
               pointerObj[result.deviceId] = `${result.longitude},${
                 result.latitude
-              }`;
+                }`;
               this.sendData.param.push(result.deviceId);
               this.mapInit(pointerObj);
               this.localPosition(JSON.stringify(this.sendData));
             }
           }
-          if (res.data.code === -1) {
-            onError(res.data.msg);
-          }
         })
-        .catch(() => {
-          onError(`${this.$t("internetErr")}`);
-        });
     }
   },
-  mounted() {
+  mounted () {
     this.grid = this.$route.query.grid;
     this.efence = this.$route.query.efence;
     this.init();
   },
-  beforeDestroy() {
+  beforeDestroy () {
     if (typeof this.over === "function") {
       this.over();
     }

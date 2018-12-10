@@ -1,8 +1,12 @@
 <template>
-  <div class="sidebar" :class="collapse? 'openSidebar' : 'closeSidebar'">
-    <div @click="colseSideBar" class="mask"></div>
+  <div class="sidebar"
+    :class="GETcollapse? 'openSidebar' : 'closeSidebar'">
+    <div @click="colseMask"
+      class="mask"></div>
     <ul>
-      <li v-for="item in items" :key="item.index" @click="colseSideBar(item)">
+      <li v-for="item in items"
+        :key="item.index"
+        @click="colseSideBar(item)">
         <router-link :to="'/'+item.index">
           <i :class="item.icon"></i>{{item.title}}</router-link>
       </li>
@@ -11,19 +15,22 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import { menuList, GoogleList } from "@/config/sideBarData";
-import bus from "@/utils/bus";
-import { getStorage, setStorage } from "@/utils/transition";
+import { getStorage } from "@/utils/transition";
 
 export default {
-  data() {
+  data () {
     return {
       collapse: false,
       items: []
     };
   },
+  computed: {
+    ...mapGetters(['GETcollapse'])
+  },
   methods: {
-    sideBarData() {
+    sideBarData () {
       const loginData = JSON.parse(getStorage("loginData"));
       // const mapType = getStorage("mapType");
       if (loginData && loginData.mapType === 1) {
@@ -51,31 +58,20 @@ export default {
       console.log(this.items);
     },
 
-    colseSideBar(item) {
+    colseSideBar (item) {
       this.collapse = !this.collapse;
-      setStorage("projectTit", item.title);
-      bus.$emit("collapsed", {
-        collapse: this.collapse,
-        msg: item.title
-      });
+      this.$store.commit('SetProjectName', item.title);
+      this.$store.commit('setCollapse', false);
+    },
+    colseMask () {
+      this.$store.commit('setCollapse', false);
     }
   },
-  mounted() {
+  mounted () {
     this.sideBarData();
   },
-  destroyed() {
+  destroyed () {
     this.items = [];
-  },
-  computed: {
-    onRoutes() {
-      return this.$route.path.replace("/", "");
-    }
-  },
-  created() {
-    // 通过 Event Bus 进行组件间通信，来折叠侧边栏
-    bus.$on("collapse", msg => {
-      this.collapse = msg;
-    });
   }
 };
 </script>

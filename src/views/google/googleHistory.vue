@@ -2,43 +2,66 @@
   <div class="all">
     <!-- <div class="mask"></div> -->
     <div class="control">
-      <input :value="starts" type="text" @click="openStartPicker" readonly>~
-      <input :value="endtime" type="text" @click="openEndPicker" readonly>
-      <mt-datetime-picker ref="starts" :cancelText="$t('timeBtn.cancle')" :confirmText="$t('timeBtn.sure')" type="datetime" @confirm="StarttimeConfirm" v-model="startpickerValue">
-      </mt-datetime-picker>
-      <mt-datetime-picker ref="endtime" :cancelText="$t('timeBtn.cancle')" :confirmText="$t('timeBtn.sure')" type="datetime" @confirm="endTimeConfirm" v-model="endpickerValue">
-      </mt-datetime-picker>
-      <mt-button v-show="trajectory" size="small" type="danger" @click="heatmap">{{$t('history.heatActive')}}</mt-button>
-      <mt-button v-show="!trajectory" size="small" type="primary" @click="track">{{$t('history.TrackReplay')}}</mt-button>
+      <input :value="starts"
+        type="text"
+        @click="openStartPicker"
+        readonly>~
+      <input :value="endtime"
+        type="text"
+        @click="openEndPicker"
+        readonly>
+      <button @click="selectedDate"
+        class="queryBtn">{{$t('history.query')}}</button>
     </div>
-    <div class="btns" v-show="trajectory">
+    <div class="toogleType">
+      <mt-button v-show="trajectory"
+        size="small"
+        type="danger"
+        @click="heatmap">{{$t('history.heatActive')}}</mt-button>
+      <mt-button v-show="!trajectory"
+        size="small"
+        type="primary"
+        @click="track">{{$t('history.TrackReplay')}}</mt-button>
+      <mt-button v-show="trajectory"
+        :class="{'active': actived}"
+        size="small"
+        type="default"
+        @click="startMove">
+        <i class="iconfont icon-ic_song_next"></i>
+      </mt-button>
+    </div>
+    <!-- <div class="btns"
+      v-show="trajectory">
       <div class="btnInfo">
-        <mt-button :class="{'active': actived}" size="small" type="default" @click="startMove">
+        <mt-button :class="{'active': actived}"
+          size="small"
+          type="default"
+          @click="startMove">
           <i class="iconfont icon-ic_song_next"></i>
         </mt-button>
-        <!-- <mt-button :class="{'active': actived === 'pause'}" size="small" type="default" @click="pauseOnclick">
-          <i class="iconfont icon-artboard25copy"></i>
-        </mt-button>
-        <mt-button :class="{'active': actived === 'resume'}" size="small" type="default" @click="resumeOnclick">
-          <i class="iconfont icon-icons-resume_button"></i>
-        </mt-button>
-        <mt-button :class="{'active': actived === 'stop'}" size="small" type="default" @click="stopOnclick">
-          <i class="iconfont icon-stop"></i>
-        </mt-button> -->
       </div>
       <div class="ranges">
         <span>{{timeSeconds}}s</span>
-        <mt-range :min="1" :max="100" v-model="timeSeconds" @change="speedChange"></mt-range>
+        <mt-range :min="1"
+          :max="100"
+          v-model="timeSeconds"
+          @change="speedChange"></mt-range>
       </div>
-    </div>
+    </div> -->
 
-    <div id="mapcontainer" class="mapcontainer"></div>
-    <div class="batteryList" :class="[closed? 'closed': '']">
-      <p @click="toggleList" class="controlBtn">
-        <i :class="{'roted': !closed}"></i>
+    <div id="mapcontainer"
+      class="mapcontainer"></div>
+    <div class="batteryList"
+      :class="{'closed': GETHistoryList}">
+      <p @click="toggleList"
+        class="controlBtn">
+        <i :class="{'roted': !GETHistoryList}"></i>
       </p>
       <ul>
-        <li v-for="(item, index) in pointerArr" :class="[ devicelabel == item.deviceId ? 'selected': '', devicelabel == item.batteryId ? 'selected': '' ]" :key="item.deviceId" @click="checkItem(item, index)">
+        <li v-for="(item, index) in pointerArr"
+          :class="[ devicelabel == item.deviceId ? 'selected': '', devicelabel == item.batteryId ? 'selected': '' ]"
+          :key="item.deviceId"
+          @click="checkItem(item, index)">
           <p>{{index+1}}、{{item.batteryId}}</p>
         </li>
         <!-- <li class="pages">
@@ -47,14 +70,31 @@
         </li> -->
       </ul>
       <div class="pages">
-        <div @click="previous" :class="[previousBtn?'':'disable']">{{$t('pageBtn.previous')}}</div>
-        <div @click="next" :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
+        <div @click="previous"
+          :class="[previousBtn?'':'disable']">{{$t('pageBtn.previous')}}</div>
+        <div @click="next"
+          :class="[naxtBtn ? '': 'disable' ]">{{$t('pageBtn.next')}}</div>
       </div>
     </div>
+    <mt-datetime-picker ref="starts"
+      :cancelText="$t('timeBtn.cancle')"
+      :confirmText="$t('timeBtn.sure')"
+      type="datetime"
+      @confirm="StarttimeConfirm"
+      v-model="startpickerValue">
+    </mt-datetime-picker>
+    <mt-datetime-picker ref="endtime"
+      :cancelText="$t('timeBtn.cancle')"
+      :confirmText="$t('timeBtn.sure')"
+      type="datetime"
+      @confirm="endTimeConfirm"
+      v-model="endpickerValue">
+    </mt-datetime-picker>
   </div>
 </template>
 <script>
 /* eslint-disable */
+import { mapGetters } from 'vuex';
 import AMap from "AMap";
 import AMapUI from "AMapUI";
 import { Indicator, Range, DatetimePicker } from "mint-ui";
@@ -65,8 +105,7 @@ import {
   yesTody,
   timeFormats
 } from "@/utils/transition";
-import { onWarn, onTimeOut, onError } from "@/utils/callback";
-import jquery from "jquery";
+import { onWarn, onError } from "@/utils/callback";
 
 var map;
 let heatmapData;
@@ -78,7 +117,7 @@ export default {
     "mt-range": Range,
     "mt-datetime-picker": DatetimePicker
   },
-  data() {
+  data () {
     return {
       actived: false,
       naxtBtn: true,
@@ -111,11 +150,14 @@ export default {
       }
     };
   },
-  mounted() {
+  computed: {
+    ...mapGetters(['GETHistoryList'])
+  },
+  mounted () {
     this.init();
   },
   methods: {
-    init() {
+    init () {
       try {
         map = new google.maps.Map(document.getElementById("mapcontainer"), {
           center: {
@@ -125,54 +167,12 @@ export default {
           zoom: 15
         });
         this.getHisData();
-        // map.addListener("click", e => {
-        //   if (this.localMakerArr.length > 0) {
-        //     this.localMakerArr.forEach(key => {
-        //       key.setMap(null);
-        //     });
-        //   }
-        //   var latLngData =
-        //     e.latLng.lat().toFixed(6) + "," + e.latLng.lng().toFixed(6);
-        //   var localMaker = new google.maps.Marker({
-        //     position: e.latLng,
-        //     icon: {
-        //       path: google.maps.SymbolPath.CIRCLE,
-        //       scale: 3,
-        //       strokeColor: "red"
-        //     },
-        //     map: map
-        //   });
-        //   this.localMakerArr.push(localMaker);
-        //   // jquery.ajax({
-        //   //   type: "post",
-        //   //   url:
-        //   //     "https://maps.googleapis.com/maps/api/geocode/json?latlng=" +
-        //   //     latLngData +
-        //   //     "&key=AIzaSyC8IXpNgfA7uD-Xb0jEqhkEdB7j3gbgOiE&fields=formatted_address",
-        //   //   async: true,
-        //   //   success: function(data) {
-        //   //     console.log(data);
-        //   //     let site = `${this.$t(
-        //   //       "history.latLng"
-        //   //     )}：${latLngData}<br />${this.$t("history.address")}：${
-        //   //       data.results[0].formatted_address
-        //   //     }`;
-        //   //     let infowindow = new google.maps.InfoWindow({
-        //   //       content: site
-        //   //     });
-        //   //     infowindow.open(map, localMaker); // 弹出信息提示窗口
-        //   //     map.addListener("click", () => {
-        //   //       infowindow.close();
-        //   //     });
-        //   //   }
-        //   // });
-        // });
       } catch (err) {
         onError(`${this.$t("mapError")}`);
       }
     },
     // 获取列表数据
-    getHisData() {
+    getHisData () {
       let pageObj = {
         bindingStatus: "1",
         pageNum: this.pageNum,
@@ -192,10 +192,7 @@ export default {
             this.previousBtn = this.pageNum === 1 ? false : true;
             result.forEach(key => {
               if (key.batteryId) {
-                if (this.batteryId && this.batteryId === key.batteryId) {
-                  this.queryDevice = key.deviceId; // 根据路由参数中的电池id 获取对应的设备id；
-                }
-                this.pointerArr.push(key);
+                this.pointerArr.push(key); // 根据路由参数中的电池id 获取对应的设备id；
               }
             });
             let params = {
@@ -207,9 +204,10 @@ export default {
               params.batteryId = this.batteryId;
               this.getData(params);
             } else {
-              this.devicelabel = result[0].batteryId;
-              params.batteryId = result[0].batteryId;
-              this.queryDevice = result[0].deviceId;
+              console.log(this.pointerArr);
+              this.devicelabel = this.pointerArr[0].batteryId;
+              params.batteryId = this.pointerArr[0].batteryId;
+              this.queryDevice = this.pointerArr[0].deviceId;
               this.getData(params);
             }
             // this.getTimeList(this.queryDevice);
@@ -220,7 +218,7 @@ export default {
       });
     },
     // 上一页
-    previous() {
+    previous () {
       if (this.pageNum > 1) {
         // Indicator.open();
         this.pageNum = this.pageNum - 1;
@@ -229,7 +227,7 @@ export default {
       }
     },
     // 下一页
-    next() {
+    next () {
       if (this.pageNum < this.total) {
         // Indicator.open();
         // this.markers && map.remove(this.markers);
@@ -238,32 +236,27 @@ export default {
       }
     },
     // 选择开始时间
-    openStartPicker() {
+    openStartPicker () {
       this.$refs.starts.open();
     },
     // 选择结束时间
-    openEndPicker() {
+    openEndPicker () {
       this.$refs.endtime.open();
     },
     // 确认开始时间
-    StarttimeConfirm(value) {
-      console.log(value);
-      this.starts = timeFormats(value);
-      this.selectedDate();
+    StarttimeConfirm () {
+      this.starts = timeFormats(this.startpickerValue);
     },
     // 确认结束时间
-    endTimeConfirm(value) {
-      this.endtime = timeFormats(value);
-      this.selectedDate();
+    endTimeConfirm () {
+      this.endtime = timeFormats(this.endpickerValue);
     },
     // 打开&&关闭列表
-    toggleList() {
-      this.closed = !this.closed;
-      this.toggleTip = this.closed
-        ? this.$t("toggleTip.open")
-        : this.$t("toggleTip.close");
+    toggleList () {
+      // this.closed = !this.closed;
+      this.$store.commit('setHistory', !this.GETHistoryList);
     },
-    speedChange() {
+    speedChange () {
       console.log("change", this.timeSeconds);
       if (this.timeSeconds < 1) {
         this.timeSeconds = 1;
@@ -276,7 +269,7 @@ export default {
       }
     },
     /* 时间确认按钮 */
-    selectedDate() {
+    selectedDate () {
       if (!this.startpickerValue) {
         onWarn(`${this.$t("history.startTime")}`);
         return;
@@ -285,18 +278,25 @@ export default {
         onWarn(`${this.$t("history.endTime")}`);
         return;
       }
-      if (new Date(this.startpickerValue) > new Date(this.endpickerValue)) {
+      const startTime = new Date(this.startpickerValue).getTime();
+      const endTime = new Date(this.endpickerValue).getTime();
+      if (startTime > endTime) {
         onWarn(`${this.$t("history.checkErr")}`);
         return;
       }
+      // if (endTime - startTime > 86400000) {
+      //   onWarn(`${this.$t("history.timeErr")}`);
+      //   return;
+      // }
       let opts = {
         pushDateStart: timeFormatSort(this.startpickerValue),
         pushDateEnd: timeFormatSort(this.endpickerValue)
       };
       opts.batteryId = this.devicelabel;
-      this.starts = timeFormats(this.startpickerValue);
-      this.endtime = timeFormats(this.endpickerValue);
+      // this.starts = timeFormats(this.startpickerValue);
+      // this.endtime = timeFormats(this.endpickerValue);
       Indicator.open();
+      this.clearMap();
       this.getData(opts);
       // if (this.deviceId && this.pageNum === 1) {
       //   opts.deviceId = this.devicelabel;
@@ -306,31 +306,8 @@ export default {
       //   this.getData(opts);
       // }
     },
-    /* 时间确认按钮 */
-    selectedDate(date) {
-      if (!this.starts) {
-        onWarn(`${this.$t("history.startTime")}`);
-        return;
-      }
-      if (!this.endtime) {
-        onWarn(`${this.$t("history.endTime")}`);
-        return;
-      }
-      if (Number(this.starts) > Number(this.endtime)) {
-        onWarn(`${this.$t("history.checkErr")}`);
-        return;
-      }
-      let opts = {
-        pushDateStart: timeFormatSort(this.starts),
-        pushDateEnd: timeFormatSort(this.endtime)
-      };
-      opts.batteryId = this.devicelabel;
-      // this.getTimeList(this.queryDevice);
-      this.clearMap();
-      this.getData(opts);
-    },
     /* 获取数据 */
-    getData(params) {
+    getData (params) {
       Indicator.open();
       GetTrajectory(params).then(res => {
         Indicator.close();
@@ -338,18 +315,20 @@ export default {
         if (res.data && res.data.code === 0) {
           let result = res.data.data;
           // console.log(result);
-          this.lineArr = [];
+          // this.lineArr = [];
           if (result.length > 0) {
             this.gridData = [];
             for (let i = 0; i < result.length; i++) {
               var key = result[i];
               var obj = {};
               obj.pushTime = key.pushTime;
-              obj.ponter = new google.maps.LatLng(key.latitude, key.longitude);
-              this.lineArr.push(obj);
-              this.gridData.push(
-                new google.maps.LatLng(key.latitude, key.longitude)
-              );
+              if (Number(key.latitude) > 1 && Number(key.longitude) > 1) {
+                obj.ponter = new google.maps.LatLng(key.latitude, key.longitude);
+                this.gridData.push(
+                  new google.maps.LatLng(key.latitude, key.longitude)
+                );
+                // this.lineArr.push(obj);
+              }
             }
             map.setCenter(this.gridData[0]);
             if (this.active) {
@@ -363,7 +342,7 @@ export default {
         }
       });
     },
-    heatmap() {
+    heatmap () {
       this.trajectory = false;
       this.active = true;
       this.clearMap();
@@ -394,11 +373,11 @@ export default {
       // heatmapData.set("gradient", gradient);
     },
 
-    startMove() {
+    startMove () {
       this.actived = true;
       this.animateCircle(this.timeSeconds);
     },
-    animateCircle(times) {
+    animateCircle (times) {
       let seconds = times || 10;
       var count = 0;
       animate1 && clearInterval(animate1);
@@ -416,7 +395,7 @@ export default {
       }, seconds);
     },
     // 历史轨迹 轨迹配置
-    track() {
+    track () {
       this.trajectory = true;
       this.active = false;
       this.actived = false;
@@ -462,7 +441,7 @@ export default {
       this.markerPointer.sdPointer.push(end);
     },
     // 清除地图上的覆盖物
-    clearMap() {
+    clearMap () {
       animate1 && clearInterval(animate1);
       heatmapData && heatmapData.setMap(null);
       line && line.setMap(null);
@@ -485,7 +464,7 @@ export default {
       }
     },
     // 列表点击事件
-    checkItem(item) {
+    checkItem (item) {
       this.activePointer = [];
       this.blockArr = [];
       animate1 && clearInterval(animate1);
@@ -501,7 +480,7 @@ export default {
       // this.getTimeList(this.queryDevice);
     }
   },
-  beforeDestroy() {
+  beforeDestroy () {
     animate1 && clearInterval(animate1);
   }
 };
@@ -547,6 +526,30 @@ export default {
       width: 35%;
       color: #333;
       text-align: center;
+    }
+    .queryBtn {
+      background: #ecf5ff;
+      border: 1px solid #b3d8ff;
+      color: #409eff;
+      padding: 4px 10px;
+      line-height: 18px;
+      font-size: 14px;
+      border-radius: 5px;
+      margin-left: 5px;
+    }
+  }
+  .toogleType {
+    position: absolute;
+    left: 0;
+    top: 40px;
+    width: 100%;
+    height: 37px;
+    z-index: 10;
+    font-size: 0;
+    padding-top: 5px;
+    padding-left: 5px;
+    button {
+      margin-right: 5px;
     }
   }
   .btns {
@@ -600,12 +603,13 @@ export default {
       width: 26px;
       position: absolute;
       top: 0;
-      height: 26px;
+      height: 36px;
+      padding: 10px 4px;
       left: -27px;
       background-color: #fff;
-      padding: 4px;
-      border-radius: 2px;
-      border: 1px solid #e5e5e5;
+      // padding: 4px;
+      border-radius: 4px;
+      border: 1px solid #b3d8ff;
 
       i {
         width: 100%;

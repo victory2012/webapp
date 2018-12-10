@@ -81,6 +81,8 @@ module.exports = {
     voltage: '设备电压'
   },
   history: {
+    timeErr: '只能查询一天时间内的数据',
+    query: '查询',
     startTime: '选择开始时间',
     endTime: '选择结束时间',
     start: '开始',
@@ -196,14 +198,16 @@ module.exports = {
     addDevice: '添加设备',
     nobind: '未绑定',
     hasbind: '已绑定',
-    online: '离线',
-    offline: '在线'
+    online: '在线',
+    offline: '离线'
   },
   addDevice: {
     title: '添加设备',
     back: '返回',
     deviceCode: '设备编号',
     manufacturer: '生产商',
+    manufacturerWarn: '请选择生产商',
+    CustomerWarn: '请选择客户',
     Customer: '客户',
     createBtn: '创建设备',
     noData: '暂无数据',

@@ -86,7 +86,6 @@ export function timeFormatSort(time) {
   // return year + "" + mounth + "" + day + "" + hours + "" + minute + "" + second;
 }
 export function timeFormats(time) {
-  if (!time) return;
   let timeDate = new Date(time);
   let year = timeDate.getFullYear();
   let mounth = timeDate.getMonth() + 1;
@@ -115,7 +114,7 @@ export function trakTimeformat(str) {
 }
 
 export function yesTody() {
-  let yesDate = new Date(new Date().toLocaleDateString()).getTime();
+  let yesDate = new Date().getTime();
   let result = yesDate - 86400000;
   let str = new Date(result);
   let yy = str.getFullYear();
@@ -123,41 +122,44 @@ export function yesTody() {
   let day = str.getDate();
   mm = mm < 10 ? `0${mm}` : mm;
   day = day < 10 ? `0${day}` : day;
-  // let hours = str.getHours();
-  // let minute = str.getMinutes();
-  // let second = str.getSeconds();
-  // return `${yy}-${mm}-${day} ${hours}:${minute}:${second}`;
-  return `${yy}/${mm}/${day} 00:00:00`;
+  let hours = str.getHours();
+  let minute = str.getMinutes();
+  let second = str.getSeconds();
+  hours = hours < 10 ? `0${hours}` : hours;
+  minute = minute < 10 ? `0${minute}` : minute;
+  second = second < 10 ? `0${second}` : second;
+  return `${yy}/${mm}/${day} ${hours}:${minute}:${second}`;
+  // return `${yy}/${mm}/${day} 00:00:00`;
 }
 
 export function userRole(str) {
   switch (str) {
-    case "plat_super_admin":
-      return "超级管理员";
-    case "super_admin":
-      return "超级管理员";
-    case "admin":
-      return "管理员";
-    case "customer_super_admin":
-      return "管理员";
-    case "manufacturer_super_admin":
-      return "管理员";
+    case 'plat_super_admin':
+      return '超级管理员';
+    case 'super_admin':
+      return '超级管理员';
+    case 'admin':
+      return '管理员';
+    case 'customer_super_admin':
+      return '管理员';
+    case 'manufacturer_super_admin':
+      return '管理员';
     default:
-      return "";
+      return '';
   }
 }
 export function companyRole(str) {
   switch (str) {
-    case "platform":
-      return "平台";
-    case "manufacturer":
-      return "生产商";
-    case "customer":
-      return "客户";
-    case "admin":
-      return "客户";
+    case 'platform':
+      return '平台';
+    case 'manufacturer':
+      return '生产商';
+    case 'customer':
+      return '客户';
+    case 'admin':
+      return '客户';
     default:
-      return "";
+      return '';
   }
 }
 export function sortGps(str) {

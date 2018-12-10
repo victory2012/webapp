@@ -3,7 +3,7 @@
     <div id="AddContainer"
       class="fenceContainer"></div>
     <div class="HandleBtn"
-      v-if="addFence">
+      v-show="addFence">
       <!-- <span class="Tiptext">Tip：选择区域后，鼠标右键结束选区</span> -->
       <mt-button size="small"
         @click="cancelSetings"
@@ -17,7 +17,7 @@
       <p></p>
     </div>
     <div class="HandleBtn"
-      v-else>
+      v-show="!addFence">
       <mt-button size="small"
         @click="ToAddFence"
         type="primary">{{$t('fence.addBtn')}}</mt-button>
@@ -26,11 +26,11 @@
         type="danger">{{$t('fence.delBtn')}}</mt-button>
     </div>
     <div class="batteryList"
-      :class="[closed? 'closed': '']">
+      :class="{'closed': GETfenceList}">
       <div class="titles">{{$t('positions.title2')}}</div>
       <p @click="toggleList"
         class="controlBtn">
-        <i :class="{'roted': !closed}"></i>
+        <i :class="{'roted': !GETfenceList}"></i>
       </p>
       <ul>
         <li v-for="(item, index) in pointerArr"
@@ -51,6 +51,7 @@
 </template>
 <script>
 /* eslint-disable */
+import { mapGetters } from 'vuex';
 import google from "google";
 import { Indicator } from "mint-ui";
 import {
@@ -70,6 +71,7 @@ let label = 1;
 export default {
   data () {
     return {
+      selectPonter: [],
       chooseId: "",
       naxtBtn: false,
       previousBtn: false,
@@ -82,6 +84,9 @@ export default {
       polygon: null,
       fencePonter: ""
     };
+  },
+  computed: {
+    ...mapGetters(['GETfenceList'])
   },
   methods: {
     init () {
@@ -100,19 +105,19 @@ export default {
     },
     // 打开&&关闭列表
     toggleList () {
-      this.closed = !this.closed;
+      this.$store.commit('setfenceList', !this.GETfenceList)
     },
     checkItem (item) {
       this.label = 1;
-      this.addFence = false;
+      // this.addFence = false;
       this.cancelSetings();
-      this.goBack();
+      // this.goBack();
       this.clickItme = item;
-      this.chooseId = this.clickItme.batteryId;
+      this.chooseId = item.batteryId;
       Indicator.open();
       this.getFenceData({
-        batteryId: this.clickItme.batteryId,
-        deviceId: this.clickItme.deviceId
+        batteryId: item.batteryId,
+        deviceId: item.deviceId
       });
     },
     next () {
@@ -168,11 +173,13 @@ export default {
           }
           let result = res.data.data;
           if (result) {
+            this.addFence = false;
             this.hasFenced = true;
             let gpsList = result.gpsList;
             let id = result.id;
             this.hasFence(gpsList, id);
           } else {
+            this.addFence = true;
             this.hasFenced = false;
             // this.buildFence();
           }
@@ -194,11 +201,7 @@ export default {
           label: `${label++}`,
           map: map
         });
-        this.fencePonter += `${event.latLng
-          .lng()
-          .toFixed(6)},${event.latLng.lat().toFixed(6)};`;
-        // str += `${event.latLng}`
-        console.log(this.fencePonter);
+        this.selectPonter.push(`${event.latLng.lng().toFixed(6)},${event.latLng.lat().toFixed(6)}`);
         this.markers.push(marker);
         if (label > 10) {
           google.maps.event.clearListeners(map, "click");
@@ -241,18 +244,24 @@ export default {
         });
       });
     },
+    unique (arr) {
+      return Array.from(new Set(arr))
+    },
     // 确认设置 添加围栏
     doAddFence () {
-      if (!this.fencePonter) {
+      let pointer = this.unique(this.selectPonter);
+      if (pointer.length === 0) {
         onError(`${this.$t("fence.tipMsg.addPointer")}`);
         return;
       }
-      let gpsList = this.fencePonter.substring(0, this.fencePonter.length - 1);
-      let pointer = gpsList.split(';');
       if (pointer.length < 3) {
         onError(`${this.$t("fence.tipMsg.less")}`);
         return;
       }
+      let gpsList = '';
+      pointer.forEach(key => {
+        gpsList += key + ';'
+      })
       let gpsObj = {
         deviceId: this.clickItme.deviceId,
         batteryId: this.clickItme.batteryId,
@@ -299,6 +308,7 @@ export default {
         console.log(res);
 
         if (res.data && res.data.code === 0) {
+          this.selectPonter = [];
           onSuccess(this.$t("fence.tipMsg.delSuccess"));
           this.getFenceData({
             batteryId: this.clickItme.batteryId,
@@ -325,7 +335,8 @@ export default {
       });
     },
     ToAddFence () {
-      this.addFence = true;
+      if (this.hasFenced) return;
+      this.selectPonter = [];
       this.buildFence();
     }
   },
@@ -336,7 +347,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import url('../../common/style/index.scss');
+@import url("../../common/style/index.scss");
 
 .outer-box {
   position: absolute;
@@ -382,7 +393,7 @@ export default {
         width: 100%;
         height: 100%;
         display: block;
-        background: url('../../assets/open.png') no-repeat;
+        background: url("../../assets/open.png") no-repeat;
         background-size: 16px;
         &.roted {
           transform: rotate(180deg);

@@ -1,9 +1,6 @@
-import http from "./http";
+import http from './http';
 
-
-// let BaseUrl = "http://192.168.1.135:8181";
 const socketUrl = 'ws://47.98.232.46:8081/gps';
-// Axios.defaults.withCredentials = true; // 让ajax携带cookie
 
 /*
  * 获取电池列表数据
@@ -24,7 +21,11 @@ export function GetCount() {
  * params.deviceId
  */
 export function addBlacklist(params) {
-  return http.post(`/device/${params.manufacturer}/${params.customer}/${params.deviceId}/add_blacklist`);
+  return http.post(
+    `/device/${params.manufacturer}/${params.customer}/${
+      params.deviceId
+    }/add_blacklist`
+  );
 }
 
 /*
@@ -34,7 +35,11 @@ export function addBlacklist(params) {
  * params.batteryId
  */
 export function deleteBattery(params) {
-  return http.post(`/battery/${params.manufacturer}/${params.customer}/${params.batteryId}/delete`);
+  return http.post(
+    `/battery/${params.manufacturer}/${params.customer}/${
+      params.batteryId
+    }/delete`
+  );
 }
 
 /*
@@ -53,7 +58,11 @@ export function addBattery(params) {
  * params.deviceId
  */
 export function deleteDevice(params) {
-  return http.post(`/device/${params.manufacturer}/${params.customer}/${params.deviceId}/delete`);
+  return http.post(
+    `/device/${params.manufacturer}/${params.customer}/${
+      params.deviceId
+    }/delete`
+  );
 }
 
 /*

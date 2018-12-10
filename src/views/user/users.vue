@@ -1,34 +1,55 @@
 <template>
   <div class="forms">
     <div class="buttons">
-      <mt-button @click="Editor" v-show="phoneEdit" type="primary" size="small">{{$t('user.edit')}}</mt-button>
-      <mt-button @click="saveClick" v-show="saveInfo" type="danger" size="small">{{$t('user.save')}}</mt-button>
-      <mt-button @click="cancelClick" v-show="saveInfo" type="default" size="small">{{$t('user.cancel')}}</mt-button>
+      <mt-button @click="Editor"
+        v-show="phoneEdit"
+        type="primary"
+        size="small">{{$t('user.edit')}}</mt-button>
+      <mt-button @click="saveClick"
+        v-show="saveInfo"
+        type="danger"
+        size="small">{{$t('user.save')}}</mt-button>
+      <mt-button @click="cancelClick"
+        v-show="saveInfo"
+        type="default"
+        size="small">{{$t('user.cancel')}}</mt-button>
     </div>
     <ul>
       <li>
         <div class="title">{{$t('user.userName')}}</div>
-        <div><input :value="userArr.userName" type="text" disabled></div>
+        <div><input :value="userArr.userName"
+            type="text"
+            disabled></div>
       </li>
       <li>
         <div class="title">{{$t('user.userRole')}}</div>
-        <div><input :value="userArr.userRole" type="text" disabled></div>
+        <div><input :value="userArr.userRole"
+            type="text"
+            disabled></div>
       </li>
       <li>
         <div class="title">{{$t('user.enterpriseRole')}}</div>
-        <div><input :value="userArr.enterpriseRole" type="text" disabled></div>
+        <div><input :value="userArr.enterpriseRole"
+            type="text"
+            disabled></div>
       </li>
       <li>
         <div class="title">{{$t('user.enterpriseName')}}</div>
-        <div><input :value="userArr.enterpriseName" type="text" disabled></div>
+        <div><input :value="userArr.enterpriseName"
+            type="text"
+            disabled></div>
       </li>
       <li>
         <div class="title">{{$t('user.phone')}}</div>
-        <div><input v-model="userArr.phoneNumber" type="text" :disabled="phoneEdit"></div>
+        <div><input v-model="userArr.phoneNumber"
+            type="text"
+            :disabled="phoneEdit"></div>
       </li>
       <li>
         <div class="title">{{$t('user.email')}}</div>
-        <div><input v-model="userArr.email" type="text" :disabled="phoneEdit"></div>
+        <div><input v-model="userArr.email"
+            type="text"
+            :disabled="phoneEdit"></div>
       </li>
     </ul>
     <!-- <button @click="creatDevice" class="creatBtn">创建设备</button> -->
@@ -40,45 +61,75 @@ import { getUserInfo, changeUserInfo } from "../../api/index";
 import { onSuccess } from "../../utils/callback";
 
 export default {
-  data() {
+  data () {
     return {
       phoneEdit: true,
       saveInfo: false,
       userArr: {}
     };
   },
-  mounted() {
+  mounted () {
     this.init();
   },
   methods: {
-    init() {
+    init () {
       Indicator.open();
       this.getData();
     },
-    getData() {
+    getData () {
       getUserInfo().then(res => {
         console.log(res.data);
         Indicator.close();
 
         if (res.data && res.data.code === 0) {
           this.userArr = res.data.data;
-          this.userArr.phoneNumber = res.data.data.phoneNumber;
-          this.userArr.email = res.data.data.email;
+          this.userArr.userRole = this.userRole(this.userArr.userRole);
+          this.userArr.enterpriseRole = this.companyRole(this.userArr.enterpriseRole);
+          // this.userArr.phoneNumber = res.data.data.phoneNumber;
+          // this.userArr.email = res.data.data.email;
         }
       });
     },
-    Editor() {
+    companyRole (str) {
+      switch (str) {
+        case "platform":
+          return `${this.$t("platform")}`;
+        case "manufacturer":
+          return `${this.$t("manufacturer")}`;
+        case "customer":
+          return `${this.$t("customer")}`;
+        default:
+          return "";
+      }
+    },
+    userRole (str) {
+      switch (str) {
+        case "plat_super_admin":
+          return this.$t("useMsg.superAdministrator");
+        case "super_admin":
+          return this.$t("useMsg.superAdministrator");
+        case "admin":
+          return this.$t("useMsg.administrator");
+        case "customer_super_admin":
+          return this.$t("useMsg.administrator");
+        case "manufacturer_super_admin":
+          return this.$t("useMsg.administrator");
+        default:
+          return "";
+      }
+    },
+    Editor () {
       this.phoneEdit = false;
       this.saveInfo = true;
       this.userArr.phoneNumber = "";
       this.userArr.email = "";
     },
-    cancelClick() {
+    cancelClick () {
       this.phoneEdit = true;
       this.saveInfo = false;
       this.getData();
     },
-    saveClick() {
+    saveClick () {
       Indicator.open();
       let userObj = {
         email: this.userArr.email,

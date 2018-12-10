@@ -1,27 +1,5 @@
-// import {
-//   Message
-// } from 'element-ui';
+import { Toast } from 'mint-ui';
 
-import {
-  Toast
-} from 'mint-ui';
-import i18n from "../i18n";
-
-console.log("i18n======>", i18n.t('internetErr'));
-export function onTimeOut(route) {
-  // MessageBox.warning({
-  //   message: "登录超时，请重新登录"
-  // });
-  Toast({
-    message: i18n.t('timeOut'),
-    position: 'middle',
-    duration: 1500
-  });
-  route.push({
-    path: "/login"
-  });
-  localStorage.removeItem('loginData');
-}
 export function onError(msg) {
   return Toast({
     message: msg,

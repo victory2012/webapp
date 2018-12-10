@@ -11,17 +11,21 @@
       </mt-button>
     </mt-header> -->
     <header class="fixedHeader">
-      <div @click="triggerList" class="is_left">
+      <div @click="triggerList"
+        class="is_left">
         <i class="iconfont icon-list3"></i>
         {{enterpriseName}}
       </div>
-      <div>{{titles}}</div>
-      <div @click="showMore" class="is_right">
+      <!-- <div>{{titles}}</div> -->
+      <div>{{GETprojectName}}</div>
+      <div @click="showMore"
+        class="is_right">
         {{userName}}
         <i class="iconfont icon-icon11 more"></i>
       </div>
     </header>
-    <div class="userInfo" :class="[showIt ? 'showit' :'']">
+    <div class="userInfo"
+      :class="[GETuserInfo ? 'showit' :'']">
       <ul @click="showMore">
         <li @click="toUser">
           <i class="iconfont icon-user"></i>
@@ -43,11 +47,10 @@
 </template>
 <script>
 import { mapGetters } from "vuex";
-import bus from "../../utils/bus";
-import { getStorage, setStorage, clearStorage } from "../../utils/transition";
+import { getStorage, clearStorage } from "../../utils/transition";
 
 export default {
-  data() {
+  data () {
     return {
       showIt: false,
       collapse: false,
@@ -55,48 +58,41 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["enterpriseName", "userName"])
-    // username() {
-    //   let userData =
-    //     JSON.parse(getStorage("loginData")) || this.$store.state.LogInDate;
-    //   let enterprise = userData ? `${userData.enterpriseName}` : "";
-    //   return enterprise;
-    // },
-    // custormname() {
-    //   let userData =
-    //     JSON.parse(getStorage("loginData")) || this.$store.state.LogInDate;
-    //   return userData ? `${userData.userName}` : "";
-    // }
+    ...mapGetters(["enterpriseName", "userName", 'GETuserInfo', 'GETcollapse', 'GETprojectName'])
   },
-  mounted() {
-    bus.$on("collapsed", key => {
-      this.collapse = key.collapse;
-      this.titles = key.msg;
-      setStorage("projectTit", key.msg);
-    });
+  mounted () {
   },
   methods: {
-    logout() {
+    logout () {
       clearStorage("loginData");
-      clearStorage("projectTit");
+      clearStorage("projectName");
       this.$router.push("/login");
     },
-    toUser() {
+    toUser () {
       this.$router.push("/user");
       this.titles = this.$t("userInfo.userMsg");
-      setStorage("projectTit", this.titles);
+      this.$store.commit('SetProjectName', this.titles);
     },
-    toPassword() {
+    toPassword () {
       this.$router.push("/password");
       this.titles = this.$t("userInfo.pasword");
-      setStorage("projectTit", this.titles);
+      this.$store.commit('SetProjectName', this.titles);
     },
-    showMore() {
-      this.showIt = !this.showIt;
+    showMore () {
+      this.$store.commit('setUserInfo', !this.GETuserInfo);
+      this.$store.commit('setRealList', true);
+      this.$store.commit('setHistory', true);
+      this.$store.commit('setCollapse', false);
+      this.$store.commit('setfenceList', true);
     },
-    triggerList() {
-      this.collapse = !this.collapse;
-      bus.$emit("collapse", this.collapse);
+    triggerList () {
+      // this.collapse = !this.collapse;
+      // console.log('collapse', this.collapse);
+      this.$store.commit('setRealList', true);
+      this.$store.commit('setfenceList', true);
+      this.$store.commit('setHistory', true);
+      this.$store.commit('setUserInfo', false);
+      this.$store.commit('setCollapse', !this.GETcollapse);
     }
   }
 };

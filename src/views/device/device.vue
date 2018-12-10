@@ -9,26 +9,37 @@
         <li class="index">{{$t('device.detail')}}</li>
       </ul>
     </div>
-    <div class="tableBody" ref="wrapper" :style="{ height: wrapperHeight + 'px' }">
-      <mt-loadmore :bottom-method="loadBottom" :auto-fill="false" @bottom-status-change="handleBottomChange" :bottom-all-loaded="allLoaded" ref="loadmore">
+    <div class="tableBody"
+      ref="wrapper"
+      :style="{ height: wrapperHeight + 'px' }">
+      <mt-loadmore :bottom-method="loadBottom"
+        :auto-fill="false"
+        @bottom-status-change="handleBottomChange"
+        :bottom-all-loaded="allLoaded"
+        ref="loadmore">
         <ul>
-          <li v-for=" (key, index) in tableData" :key="key.deviceId">
+          <li v-for=" (key, index) in tableData"
+            :key="key.deviceId">
             <div class="index">{{index +1}}</div>
             <div class="device">{{key.deviceId}}</div>
             <div>{{key.bindingName}}</div>
             <div>{{key.online}}</div>
-            <div class="blueColor index" @click="toLookDetail(key)">{{$t('device.detail')}}</div>
+            <div class="blueColor index"
+              @click="toLookDetail(key)">{{$t('device.detail')}}</div>
           </li>
         </ul>
-        <div slot="bottom" class="mint-loadmore-bottom">
-          <span v-show="bottomStatus !== 'loading'" :class="{ 'is-rotate': bottomStatus === 'drop' }">↑</span>
+        <div slot="bottom"
+          class="mint-loadmore-bottom">
+          <span v-show="bottomStatus !== 'loading'"
+            :class="{ 'is-rotate': bottomStatus === 'drop' }">↑</span>
           <span v-show="bottomStatus === 'loading'">
             <mt-spinner type="snake"></mt-spinner>
           </span>
         </div>
       </mt-loadmore>
     </div>
-    <mt-popup v-model="showIt" popup-transition="popup-fade">
+    <mt-popup v-model="showIt"
+      popup-transition="popup-fade">
       <div class="table">
         <div class="header">
           {{$t('device.deviceDetail')}}
@@ -62,14 +73,18 @@
             <li>
               <div>{{$t('device.device')}}</div>
               <div class="cons">
-                <mt-button @click="LookRun" size="small" type="primary">{{$t('device.location')}}</mt-button>
+                <mt-button @click="LookRun"
+                  size="small"
+                  :disabled="detailObj.onlineStatus === 0"
+                  :type="detailObj.onlineStatus === 0?'default':'primary'">{{$t('device.location')}}</mt-button>
               </div>
             </li>
           </ul>
         </div>
       </div>
     </mt-popup>
-    <div class="pb" @click="ToaddDevice">{{$t('device.addDevice')}}</div>
+    <div class="pb"
+      @click="ToaddDevice">{{$t('device.addDevice')}}</div>
     <!-- <mt-palette-button content="添加设备" @expand="main_log('expand')" @expanded="main_log('expanded')"
       class="pb" :radius="80" ref="target_1" mainButtonStyle="color:#fff;background-color:#26a2ff;font-size: 12px;">
       <div class="my-icon-button">1</div>
@@ -85,8 +100,7 @@ import {
   enterpriseList,
   enterpriseCustomer
 } from "../../api/index";
-// import { getStorage } from "../../utils/transition";
-import { onError } from "../../utils/callback";
+import { getStorage } from "../../utils/transition";
 
 export default {
   components: {
@@ -94,7 +108,7 @@ export default {
     "mt-loadmore": Loadmore,
     "mt-popup": Popup
   },
-  data() {
+  data () {
     return {
       pageNum: 1,
       showIt: false,
@@ -108,23 +122,23 @@ export default {
       customerOptions: []
     };
   },
-  mounted() {
+  mounted () {
     this.wrapperHeight =
       document.documentElement.clientHeight -
       this.$refs.wrapper.getBoundingClientRect().top;
     this.getData();
   },
   methods: {
-    handleBottomChange(status) {
+    handleBottomChange (status) {
       this.bottomStatus = status;
     },
-    loadBottom() {
+    loadBottom () {
       this.pageNum++;
       setTimeout(() => {
         this.getData();
       }, 1000);
     },
-    getData() {
+    getData () {
       Indicator.open();
       let pageObj = {
         pageSize: 15,
@@ -151,10 +165,7 @@ export default {
               } else {
                 key.bindingName = this.$t("device.hasbind");
               }
-              key.online =
-                key.onlineStatus === 0
-                  ? this.$t("device.offline")
-                  : this.$t("device.online");
+              key.online = key.onlineStatus === 0 ? this.$t("device.offline") : this.$t("device.online");
               // key.createTime = timeFormats(resultTime);
               // key.createTimea = timeFormats(resultTime);
               key.status = key.status === 0 ? true : false;
@@ -162,12 +173,9 @@ export default {
             });
           }
         }
-        if (result.code === -1) {
-          onError(result.msg);
-        }
       });
     },
-    getAddData() {
+    getAddData () {
       // 生产企业列表
       enterpriseList().then(res => {
         if (res.data && res.data.code === 0) {
@@ -188,34 +196,34 @@ export default {
           }
         });
     },
-    toLookDetail(key) {
+    toLookDetail (key) {
       console.log(key);
       this.detailObj = key;
       this.showIt = true;
     },
-    LookRun() {
-      // let userData = JSON.parse(getStorage("loginData"));
+    LookRun () {
+      let userData = JSON.parse(getStorage("loginData"));
       let deviceId = this.detailObj.deviceId;
       if (this.detailObj.onlineStatus === 1) {
-        this.$router.push({
-          path: "googlePos",
-          query: { deviceId: deviceId }
-        });
-        // if (userData.mapType === 0) {
-        //   this.$router.push({
-        //     path: "position",
-        //     query: { deviceId: deviceId }
-        //   });
-        // }
-        // if (userData.mapType === 1) {
-        //   this.$router.push({
-        //     path: "googlePos",
-        //     query: { deviceId: deviceId }
-        //   });
-        // }
+        // this.$router.push({
+        //   path: "googlePos",
+        //   query: { deviceId: deviceId }
+        // });
+        if (userData.mapType === 0) {
+          this.$router.push({
+            path: "position",
+            query: { deviceId: deviceId }
+          });
+        }
+        if (userData.mapType === 1) {
+          this.$router.push({
+            path: "googlePos",
+            query: { deviceId: deviceId }
+          });
+        }
       }
     },
-    ToaddDevice() {
+    ToaddDevice () {
       // console.log(str);
       this.$router.push("addevice");
     }
@@ -223,7 +231,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import url("../../common/style/index.scss");
+@import url('../../common/style/index.scss');
 .battery {
   position: absolute;
   top: $baseHeader;
@@ -348,7 +356,7 @@ export default {
         flex: 1;
         color: #494848;
         &.cons {
-          flex: 0 0 px2rem(160px);
+          flex: 0 0 px2rem(150px);
           color: #333;
           text-align: right;
         }

@@ -1,7 +1,8 @@
 <template>
   <div>
     <mt-header :title="$t('addDevice.title')">
-      <router-link to="/device" slot="left">
+      <router-link to="/device"
+        slot="left">
         <mt-button icon="back">{{$t('addDevice.back')}}</mt-button>
       </router-link>
     </mt-header>
@@ -10,27 +11,54 @@
         <li>
           <div class="title">{{$t('addDevice.deviceCode')}}</div>
           <div>
-            <input v-model="deviceId" type="text">
+            <input v-model="deviceId"
+              type="text">
           </div>
         </li>
         <li>
           <div class="title">{{$t('addDevice.manufacturer')}}</div>
           <div @click="chooseMani">
-            {{manufacturer}}
+            {{manufacturer.name}}
           </div>
         </li>
         <li>
           <div class="title">{{$t('addDevice.Customer')}}</div>
-          <div @click="chooseCustomr">{{customerValu}}</div>
+          <div @click="chooseCustomr">
+            {{customerValu.name}}
+          </div>
         </li>
       </ul>
-      <button @click="creatDevice" class="creatBtn">{{$t('addDevice.createBtn')}}</button>
+      <button @click="creatDevice"
+        class="creatBtn">{{$t('addDevice.createBtn')}}</button>
     </div>
-    <mt-popup v-model="popupVisible" class="popup" position="bottom">
-      <mt-picker :slots="manu" @change="onValuesChange"></mt-picker>
+    <mt-popup v-model="popupVisible"
+      class="popup"
+      position="bottom">
+      <mt-picker :slots="manu"
+        @change="onValuesChange"
+        valueKey="name"
+        :show-toolbar="true">
+        <div class="mint-datetime-action mint-datetime-cancel"
+          @click.stop="Manicancel">{{$t('timeBtn.cancle')}}</div>
+        <!-- 确定 -->
+        <div class="mint-datetime-action mint-datetime-confirm"
+          @click="ManisureBtn">{{$t('timeBtn.sure')}}</div>
+      </mt-picker>
     </mt-popup>
-    <mt-popup v-model="CusVisible" class="popup" position="bottom">
-      <mt-picker :slots="customer" @change="CusVisibleChange"></mt-picker>
+    <mt-popup v-model="CusVisible"
+      class="popup"
+      position="bottom">
+      <mt-picker :slots="customer"
+        valueKey="name"
+        @change="CusVisibleChange"
+        :show-toolbar="true">
+        <!-- 取消 -->
+        <div class="mint-datetime-action mint-datetime-cancel"
+          @click.stop="cancel">{{$t('timeBtn.cancle')}}</div>
+        <!-- 确定 -->
+        <div class="mint-datetime-action mint-datetime-confirm"
+          @click="sureBtn">{{$t('timeBtn.sure')}}</div>
+      </mt-picker>
     </mt-popup>
   </div>
 </template>
@@ -50,15 +78,22 @@ export default {
     "mt-popup": Popup,
     "mt-picker": Picker
   },
-  data() {
+  data () {
     return {
       device: {},
       CusVisible: false,
       popupVisible: false,
-      manufacturer: "",
-      customerValu: "",
+      manufacturer: {
+        name: this.$t('addDevice.manufacturerWarn'),
+        id: ''
+      },
+      customerValu: {
+        name: this.$t('addDevice.CustomerWarn'),
+        id: ''
+      },
       deviceId: "",
       manufacturerOptions: {},
+      chooseObj: {},
       customerOptions: {},
       manu: [
         {
@@ -72,24 +107,40 @@ export default {
       ]
     };
   },
-  mounted() {
+  mounted () {
     this.getAddData();
   },
   methods: {
-    onValuesChange(picker, value) {
-      this.manufacturer = value[0];
-      console.log(this.manufacturerOptions[value[0]]);
+    Manicancel () {
+      this.chooseObj = {};
+      this.popupVisible = false;
     },
-    CusVisibleChange(picker, value) {
-      this.customerValu = value[0];
+    ManisureBtn () {
+      this.manufacturer = this.chooseObj;
+      this.popupVisible = false;
     },
-    chooseMani() {
+    cancel () {
+      this.CusVisible = false;
+    },
+    sureBtn () {
+      this.chooseCus = this.chooseCus;
+      this.CusVisible = false;
+    },
+    onValuesChange (picker, value) {
+      // this.manufacturer = value[0];
+      this.chooseObj = value[0];
+    },
+    CusVisibleChange (picker, value) {
+      // this.customerValu = value[0];
+      this.chooseCus = value[0];
+    },
+    chooseMani () {
       this.popupVisible = !this.popupVisible;
     },
-    chooseCustomr() {
+    chooseCustomr () {
       this.CusVisible = !this.CusVisible;
     },
-    getAddData() {
+    getAddData () {
       // 生产企业列表
       enterpriseList().then(res => {
         if (res.data && res.data.code === 0) {
@@ -97,11 +148,13 @@ export default {
           this.manu[0].values = [];
           if (result.length > 0) {
             result.forEach(key => {
-              this.manu[0].values.push(key.name);
-              this.manufacturerOptions[key.name] = key;
+              this.manu[0].values.push(key);
             });
           } else {
-            this.manu[0].values.push(`${this.$t("addDevice.noData")}`);
+            this.manu[0].values.push({
+              name: `${this.$t("addDevice.noData")}`,
+              id: ''
+            });
           }
         }
       });
@@ -114,29 +167,36 @@ export default {
             if (data.length > 0) {
               data.forEach(key => {
                 this.customer[0].values.push(key.name);
-                this.customerOptions[key.name] = key;
               });
             } else {
-              this.customer[0].values.push(`${this.$t("addDevice.noData")}`);
+              this.customer[0].values.push({
+                name: `${this.$t("addDevice.noData")}`,
+                id: ''
+              });
             }
           }
         });
     },
-    creatDevice() {
-      let manufacturer = this.manufacturerOptions[this.manufacturer];
-      let keys = Object.keys(this.customerOptions);
-      let customer =
-        keys.length > 0
-          ? this.customerOptions[this.customerValu]
-          : { id: "", name: "" };
+    creatDevice () {
+      let manufacturerName;
+      let customerName;
+      if (!this.manufacturer.id) {
+        manufacturerName = "";
+      } else {
+        manufacturerName = this.manufacturer.name;
+      }
+      if (!this.customerValu.id) {
+        customerName = "";
+      } else {
+        customerName = this.customerValu.name;
+      }
       let params = {
-        manufacturerId: manufacturer.id || "",
-        customerId: customer.id || "",
+        manufacturerId: this.manufacturer.id || '',
+        customerId: this.customerValu.id || '',
         deviceId: this.deviceId,
-        manufacturerName: manufacturer.name || "",
-        customerName: customer.name || ""
+        manufacturerName: manufacturerName,
+        customerName: customerName
       };
-      console.log(customer);
       console.log(params);
       if (!this.deviceId) {
         onError(`${this.$t("addDevice.errorTip")}`);
@@ -154,7 +214,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import url("../../common/style/index.scss");
+@import url('../../common/style/index.scss');
 .mint-header {
   background: #ffffff;
   color: #394750;

@@ -78,6 +78,8 @@ module.exports = {
     voltage: 'Voltage'
   },
   history: {
+    timeErr: 'Only data in one day can be queried',
+    query: 'Query',
     startTime: 'Please enter start time.',
     endTime: 'Please enter end time.',
     start: 'Start',
@@ -182,7 +184,7 @@ module.exports = {
     serial: 'No.',
     deviceCode: 'Device Id',
     bindStatus: 'Binding Status',
-    runStatus: 'Operating Status',
+    runStatus: 'Status',
     detail: 'Detail',
     deviceDetail: 'Device Profile',
     manufacturerName: 'Company Name',
@@ -194,8 +196,8 @@ module.exports = {
     addDevice: 'New Device',
     nobind: 'Unbound',
     hasbind: 'Bound',
-    online: 'Offline',
-    offline: 'Online'
+    online: 'Online',
+    offline: 'Offline'
   },
   addDevice: {
     title: 'New Device',
@@ -203,6 +205,8 @@ module.exports = {
     deviceCode: 'Device Id',
     manufacturer: 'Manufacturer',
     Customer: 'Customer',
+    manufacturerWarn: 'Please select manufacturer',
+    CustomerWarn: 'Please select customer',
     createBtn: 'Create',
     noData: 'Empty',
     errorTip: 'Please enter device id.',

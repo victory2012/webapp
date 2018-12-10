@@ -1,6 +1,10 @@
 export default {
-  loginData: '',
+  loginData: localStorage.getItem('loginData') || '',
   mapType: '',
-  firstName: "morong",
-  lastName: "sh"
+  projectName: localStorage.getItem('projectName') || '',
+  collapse: false,
+  showIt: false,
+  realList: false,
+  historyList: false,
+  fenceList: false
 };
